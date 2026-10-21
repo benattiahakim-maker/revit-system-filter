@@ -1,0 +1,5 @@
+{
+  "id": "EgisSystemFilter_R2027",
+  "engine": "Autodesk.Revit+2027",
+  "description": "Revit System Filter : export de l'inventaire des systèmes vers systems-inventory.json (Revit 2027)"
+}

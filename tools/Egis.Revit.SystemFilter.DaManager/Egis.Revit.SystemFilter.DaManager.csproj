@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Application WPF DaManager (EGR-19) : vues uniquement ; la logique est dans Egis.Revit.SystemFilter.DaManager.Core.
+       Compile sous Linux/macOS (EnableWindowsTargeting) ; ne s'exécute que sous Windows. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>$(CoreTargetFramework)-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RootNamespace>Egis.Revit.SystemFilter.DaManager.App</RootNamespace>
+    <AssemblyName>Egis.Revit.SystemFilter.DaManager</AssemblyName>
+    <Title>EG_ROOM_TRACKER DaManager</Title>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Egis.Revit.SystemFilter.DaManager.Core\Egis.Revit.SystemFilter.DaManager.Core.csproj" />
+  </ItemGroup>
+</Project>

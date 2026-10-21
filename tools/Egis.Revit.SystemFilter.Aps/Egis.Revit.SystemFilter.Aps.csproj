@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Client APS (OAuth 2-legged, Automation API v3, OSS) partagé par les outils EGR-19 et EGR-20. Sans WPF ni Revit. -->
+  <PropertyGroup>
+    <TargetFramework>$(CoreTargetFramework)</TargetFramework>
+    <RootNamespace>Egis.Revit.SystemFilter.Aps</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Egis.Revit.SystemFilter.Aps.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- SecretRedactor : masquage des jetons et URL signées dans les messages d'erreur. -->
+    <ProjectReference Include="..\Egis.Revit.SystemFilter.Logging\Egis.Revit.SystemFilter.Logging.csproj" />
+  </ItemGroup>
+</Project>

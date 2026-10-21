@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Application WPF WorkItemRunner (EGR-20) : vues uniquement ; la logique est dans Egis.Revit.SystemFilter.WorkItemRunner.Core.
+       Compile sous Linux/macOS (EnableWindowsTargeting) ; ne s'exécute que sous Windows. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>$(CoreTargetFramework)-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RootNamespace>Egis.Revit.SystemFilter.WorkItemRunner.App</RootNamespace>
+    <AssemblyName>Egis.Revit.SystemFilter.WorkItemRunner</AssemblyName>
+    <Title>EG_ROOM_TRACKER WorkItemRunner</Title>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Egis.Revit.SystemFilter.WorkItemRunner.Core\Egis.Revit.SystemFilter.WorkItemRunner.Core.csproj" />
+  </ItemGroup>
+</Project>

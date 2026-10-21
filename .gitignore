@@ -43,3 +43,12 @@ TestResults/
 *.cache
 Thumbs.db
 desktop.ini
+
+[Bb]in/
+[Oo]bj/
+.vs/
+
+
+[Bb]in/
+[Oo]bj/
+.vs/

@@ -1,0 +1,37 @@
+{
+  "id": "SystemsInventory_R2027",
+  "engine": "Autodesk.Revit+2027",
+  "commandLine": [
+    "$(engine.path)\\\\revitcoreconsole.exe /i \"$(args[rvtFile].path)\" /al \"$(appbundles[EgisSystemFilter_R2027].path)\""
+  ],
+  "appbundles": [
+    "{{NICKNAME}}.EgisSystemFilter_R2027+{{APPBUNDLE_ALIAS}}"
+  ],
+  "parameters": {
+    "rvtFile": {
+      "zip": false,
+      "ondemand": false,
+      "verb": "get",
+      "description": "Maquette Revit à analyser (.rvt)",
+      "required": true,
+      "localName": "input.rvt"
+    },
+    "options": {
+      "zip": false,
+      "ondemand": false,
+      "verb": "get",
+      "description": "Options facultatives de l'export (options.json)",
+      "required": false,
+      "localName": "options.json"
+    },
+    "result": {
+      "zip": false,
+      "ondemand": false,
+      "verb": "put",
+      "description": "Inventaire normalisé des systèmes (systems-inventory.json)",
+      "required": true,
+      "localName": "systems-inventory.json"
+    }
+  },
+  "description": "Revit System Filter : export de l'inventaire des systèmes (Revit 2027)"
+}

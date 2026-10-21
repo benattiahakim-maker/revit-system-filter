@@ -1,0 +1,246 @@
+<Window x:Class="Egis.Revit.SystemFilter.DaManager.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="EG_ROOM_TRACKER · DaManager" Width="1280" Height="860" WindowStartupLocation="CenterScreen">
+  <Window.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+  </Window.Resources>
+  <DockPanel>
+    <!-- En-tête -->
+    <Border DockPanel.Dock="Top" Background="#0F172A" Padding="20,14">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Content="Actualiser" Command="{Binding RefreshCommand}" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Text="DaManager" Foreground="White" FontSize="20" FontWeight="SemiBold" />
+          <TextBlock Foreground="#94A3B8">
+            <Run Text="Identifiants : " /><Run Text="{Binding CredentialSource, Mode=OneWay}" />
+            <Run Text="   ·   API : " /><Run Text="{Binding DaBaseUrl, Mode=OneWay}" />
+            <Run Text="   ·   Commit : " /><Run Text="{Binding Commit, Mode=OneWay, TargetNullValue=inconnu}" />
+          </TextBlock>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <Border DockPanel.Dock="Top" Background="#FEF3C7" BorderBrush="#F59E0B" BorderThickness="0,0,0,1" Padding="20,8"
+            Visibility="{Binding HasConfigurationBanner, Converter={StaticResource BoolToVisibility}}">
+      <TextBlock Text="{Binding ConfigurationBanner, Mode=OneWay}" Foreground="#78350F" TextWrapping="Wrap" />
+    </Border>
+
+    <!-- Barre d'état -->
+    <Border DockPanel.Dock="Bottom" Background="#E2E8F0" Padding="12,6">
+      <DockPanel>
+        <ProgressBar DockPanel.Dock="Right" Width="140" Height="6" IsIndeterminate="True"
+                     Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+        <TextBlock Text="{Binding Status}" />
+      </DockPanel>
+    </Border>
+
+    <Grid Margin="16">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="380" />
+        <ColumnDefinition Width="16" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Colonne gauche : configuration et actions -->
+      <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock Text="Configuration" Style="{StaticResource Heading}" />
+              <TextBlock Text="Nickname APS (APS_NICKNAME)" Style="{StaticResource Hint}" />
+              <TextBox Text="{Binding Nickname, UpdateSourceTrigger=PropertyChanged}" />
+              <WrapPanel Margin="0,4,0,0">
+                <Button Content="Définir le nickname…" Style="{StaticResource Secondary}" Command="{Binding SetNicknameCommand}"
+                        ToolTip="Une seule fois, avant toute publication : PATCH /forgeapps/me avec le nickname saisi (plan et confirmation)." />
+              </WrapPanel>
+              <TextBlock Text="Racine du dépôt (définitions)" Style="{StaticResource Hint}" Margin="0,6,0,0" />
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Content="…" Style="{StaticResource Secondary}" Command="{Binding BrowseRepositoryCommand}" />
+                <TextBox Text="{Binding RepositoryRoot, UpdateSourceTrigger=LostFocus}" />
+              </DockPanel>
+              <TextBlock Text="Dossier des ZIP (APPBUNDLE_DIR)" Style="{StaticResource Hint}" Margin="0,6,0,0" />
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Content="…" Style="{StaticResource Secondary}" Command="{Binding BrowseBundleDirectoryCommand}" />
+                <TextBox Text="{Binding BundleDirectory, UpdateSourceTrigger=LostFocus}" />
+              </DockPanel>
+              <TextBlock Text="Versions Revit (REVIT_VERSIONS)" Style="{StaticResource Hint}" Margin="0,6,0,0" />
+              <ItemsControl ItemsSource="{Binding RevitVersions}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <CheckBox Content="{Binding Version}" IsChecked="{Binding IsSelected}" Margin="0,4,14,0" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock Text="Publication (docs/PUBLISHING.md)" Style="{StaticResource Heading}" />
+              <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,8"
+                         Text="1. ZIP construits (build-appbundle.sh ou artefact CI) sur le commit affiché. 2. Publier en test. 3. Recette EGR-14 sur +test. 4. Promouvoir en prod. Chaque écriture affiche son plan et demande confirmation." />
+              <WrapPanel>
+                <Button Content="Publier en test" Command="{Binding PublishCommand}" />
+                <Button Content="Promouvoir test → prod" Command="{Binding PromoteCommand}" />
+              </WrapPanel>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock Text="Alias / retour arrière" Style="{StaticResource Heading}" />
+              <TextBlock Style="{StaticResource Hint}" Text="Ressource sélectionnée dans le tableau. Créer ou déplacer un alias (par exemple prod vers une version antérieure)." />
+              <Grid Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="Alias" Style="{StaticResource Hint}" />
+                  <TextBox Text="{Binding AliasName, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <TextBlock Text="Version" Style="{StaticResource Hint}" />
+                  <TextBox Text="{Binding AliasVersion, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <Button Grid.Column="2" VerticalAlignment="Bottom" Content="Appliquer" Command="{Binding SetAliasCommand}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock Text="Nettoyage des versions" Style="{StaticResource Heading}" />
+              <TextBlock Style="{StaticResource Hint}"
+                         Text="Quota APS : 100 versions. Les versions référencées par un alias ou citées par le journal de publication ne sont jamais supprimées. Versions supplémentaires à protéger : ci-dessous." />
+              <Grid Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="90" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="Garder N" Style="{StaticResource Hint}" />
+                  <TextBox Text="{Binding KeepLatest, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <TextBlock Text="Autres versions protégées" Style="{StaticResource Hint}" />
+                  <TextBox Text="{Binding ProtectedVersions, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <Button Grid.Column="2" VerticalAlignment="Bottom" Content="Planifier…" Style="{StaticResource DangerButton}" Command="{Binding CleanupCommand}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock Text="Journal de publication" Style="{StaticResource Heading}" />
+              <TextBlock Style="{StaticResource Hint}" TextWrapping="Wrap"
+                         Text="docs/PUBLISHING.md section 8. Une ligne est ajoutée à chaque publication en test et à chaque promotion ; le nettoyage protège toutes les versions citées. Import et export en JSON ou en table Markdown." />
+              <TextBlock Text="Fichier" Style="{StaticResource Hint}" Margin="0,6,0,0" />
+              <TextBox Text="{Binding JournalPath, UpdateSourceTrigger=LostFocus}" />
+              <TextBlock Text="{Binding JournalStatus}" Style="{StaticResource Hint}" Margin="0,4,0,0" />
+              <ItemsControl ItemsSource="{Binding Journal}" MaxHeight="140" Margin="0,4,0,0">
+                <ItemsControl.Template>
+                  <ControlTemplate><ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsPresenter /></ScrollViewer></ControlTemplate>
+                </ItemsControl.Template>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Text}" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <Button Content="Importer…" Command="{Binding ImportJournalCommand}" Margin="0,0,6,0" />
+                <Button Content="Exporter…" Command="{Binding ExportJournalCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Colonne droite : état et journal -->
+      <Grid Grid.Column="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+          <RowDefinition Height="220" />
+        </Grid.RowDefinitions>
+
+        <Border Style="{StaticResource Card}">
+          <StackPanel>
+            <TextBlock Text="Engines Revit disponibles" Style="{StaticResource Heading}" />
+            <ItemsControl ItemsSource="{Binding Engines}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Background="#DBEAFE" CornerRadius="10" Padding="8,2" Margin="0,0,6,4">
+                    <TextBlock Text="{Binding}" Foreground="#1E3A8A" />
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="AppBundles et Activities du dépôt" Style="{StaticResource Heading}" />
+            <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource Hint}" Margin="0,8,0,0">
+              <Run Text="Toutes les ressources de l'application : " />
+              <Run Text="{Binding AllAppBundles.Count, Mode=OneWay}" /><Run Text=" AppBundle(s), " />
+              <Run Text="{Binding AllActivities.Count, Mode=OneWay}" /><Run Text=" Activity(ies)." />
+            </TextBlock>
+            <DataGrid ItemsSource="{Binding Resources}" SelectedItem="{Binding SelectedResource}" AutoGenerateColumns="False"
+                      IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" SelectionMode="Single"
+                      BorderThickness="0" Background="White" RowHeight="28" HorizontalGridLinesBrush="{StaticResource Border}">
+              <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsNearQuota}" Value="True">
+                      <Setter Property="Background" Value="#FEF3C7" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </DataGrid.RowStyle>
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Revit" Binding="{Binding RevitVersion}" Width="60" />
+                <DataGridTextColumn Header="Type" Binding="{Binding KindLabel}" Width="90" />
+                <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="190" />
+                <DataGridTextColumn Header="Nb" Binding="{Binding VersionCount}" Width="45" />
+                <DataGridTextColumn Header="Versions" Binding="{Binding VersionsText}" Width="*" />
+                <DataGridTextColumn Header="Alias" Binding="{Binding AliasesText}" Width="200" />
+              </DataGrid.Columns>
+            </DataGrid>
+          </DockPanel>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="Journal des opérations" Style="{StaticResource Heading}" />
+            <ListBox ItemsSource="{Binding Log}" BorderThickness="0" FontFamily="Consolas" FontSize="12">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock TextWrapping="Wrap">
+                    <Run Text="{Binding TimeText, Mode=OneWay}" Foreground="{StaticResource Muted}" />
+                    <Run Text="{Binding Level, Mode=OneWay}" FontWeight="SemiBold" />
+                    <Run Text="{Binding Message, Mode=OneWay}" />
+                  </TextBlock>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </Border>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</Window>

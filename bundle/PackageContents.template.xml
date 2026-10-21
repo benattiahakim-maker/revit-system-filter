@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage
+    SchemaVersion="1.0"
+    AutodeskProduct="Revit"
+    ProductType="Application"
+    Name="EgisSystemFilter"
+    AppVersion="2.0.0"
+    FriendlyVersion="2.0.0"
+    Description="Export de l'inventaire des systèmes CVCD - Egis Bâtiment">
+  <CompanyDetails Name="Egis" Url="https://www.egis-group.com" />
+  <Components Description="Revit @REVIT@">
+    <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="R@REVIT@" SeriesMax="R@REVIT@" />
+    <ComponentEntry
+        AppName="EgisSystemFilter_R@REVIT@"
+        ModuleName="./Contents/EgisSystemFilter.addin"
+        Version="2.0.0" />
+  </Components>
+</ApplicationPackage>

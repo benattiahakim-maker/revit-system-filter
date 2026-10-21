@@ -1,0 +1,23 @@
+<Project>
+
+  <!--
+    Propriétés communes aux OUTILS APS (lib Aps, DaManager, WorkItemRunner).
+    Indépendants de Revit : ce fichier isole le sous-arbre tools/ des propriétés
+    Revit de la racine (MSBuild n'importe que le Directory.Build.props le plus proche).
+  -->
+  <PropertyGroup>
+    <Product>Revit System Filter</Product>
+    <Company>Egis</Company>
+    <Version>2.0.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NeutralLanguage>fr-FR</NeutralLanguage>
+
+    <!-- Cœur indépendant de Revit : net8.0, chargeable par les moteurs .NET 8 et .NET 10. -->
+    <CoreTargetFramework>net8.0</CoreTargetFramework>
+  </PropertyGroup>
+
+</Project>

@@ -1,49 +1,52 @@
+using System;
 using System.IO;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
+using DesignAutomationFramework;
 using Egis.Revit.SystemFilter.DesignAutomation.Models;
 
 namespace Egis.Revit.SystemFilter.DesignAutomation
 {
     /// <summary>
-    /// Application de base de données headless pour APS Design Automation.
-    ///
-    /// Phase 2 : dans <see cref="OnStartup"/>, s'abonner à
-    /// <c>DesignAutomationBridge.DesignAutomationReadyEvent</c> (fourni par le
-    /// SDK Autodesk DA) et router l'événement vers <see cref="ExecuteWorkitem"/>.
-    /// La logique métier, elle, est déjà complète et partagée via
-    /// <see cref="SystemFilterAutomation"/>.
+    /// Application de base de données headless pour APS Design Automation for Revit.
+    /// Au démarrage du workitem, exporte l'inventaire des systèmes du modèle en JSON
+    /// via les services Core — aucune sélection n'est requise en entrée.
     /// </summary>
     public sealed class SystemFilterDbApplication : IExternalDBApplication
     {
-        private const string InputFileName = "params.json";
-        private const string OutputFileName = "result.rvt";
+        private const string OptionsFileName = "options.json";
 
         public ExternalDBApplicationResult OnStartup(ControlledApplication application)
         {
-            // Phase 2 :
-            // DesignAutomationBridge.DesignAutomationReadyEvent += OnDesignAutomationReady;
+            DesignAutomationBridge.DesignAutomationReadyEvent += OnDesignAutomationReady;
             return ExternalDBApplicationResult.Succeeded;
         }
 
         public ExternalDBApplicationResult OnShutdown(ControlledApplication application)
         {
+            DesignAutomationBridge.DesignAutomationReadyEvent -= OnDesignAutomationReady;
             return ExternalDBApplicationResult.Succeeded;
         }
 
-        /// <summary>
-        /// Exécute un workitem : lit <c>params.json</c> dans le dossier de travail,
-        /// applique les filtres puis enregistre le document résultat.
-        /// Appelé par le handler Design Automation (phase 2).
-        /// </summary>
-        public void ExecuteWorkitem(Document document, string workingDirectory)
+        private void OnDesignAutomationReady(object? sender, DesignAutomationReadyEventArgs e)
         {
-            var input = DesignAutomationInput.Load(Path.Combine(workingDirectory, InputFileName));
+            ExportInventory(e.DesignAutomationData.RevitDoc, Directory.GetCurrentDirectory());
+            e.Succeeded = true;
+        }
 
-            new SystemFilterAutomation().Run(document, input);
+        /// <summary>
+        /// Lit les options facultatives (<c>options.json</c>) puis écrit l'inventaire
+        /// des systèmes dans le dossier de travail.
+        /// </summary>
+        public string ExportInventory(Document document, string workingDirectory)
+        {
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
 
-            var outputPath = Path.Combine(workingDirectory, OutputFileName);
-            document.SaveAs(outputPath, new SaveAsOptions { OverwriteExistingFile = true });
+            var options = DesignAutomationOptions.Load(Path.Combine(workingDirectory, OptionsFileName));
+            return new SystemInventoryExport().Export(document, workingDirectory, options);
         }
     }
 }
