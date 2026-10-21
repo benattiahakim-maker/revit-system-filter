@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0-windows;net10.0-windows</TargetFrameworks>
+    <RootNamespace>Egis.Revit.SystemFilter.DesignAutomation</RootNamespace>
+    <AssemblyName>Egis.Revit.SystemFilter.DesignAutomation</AssemblyName>
+    <!-- Core référence WindowsBase (via RevitAPI) : on active le framework desktop. -->
+    <UseWPF>true</UseWPF>
+    <UseRevitApi>true</UseRevitApi>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Egis.Revit.SystemFilter.Core\Egis.Revit.SystemFilter.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Egis System Filter</Name>
+    <Assembly>EgisSystemFilter\Egis.Revit.SystemFilter.AddIn.dll</Assembly>
+    <AddInId>8F6B2C14-3D7A-4E9B-9C1F-2A5D6E7F8B90</AddInId>
+    <FullClassName>Egis.Revit.SystemFilter.AddIn.Application.RibbonApplication</FullClassName>
+    <VendorId>EGIS</VendorId>
+    <VendorDescription>Egis Bâtiment - Pôle BIM</VendorDescription>
+  </AddIn>
+</RevitAddIns>

@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0-windows;net10.0-windows</TargetFrameworks>
+    <RootNamespace>Egis.Revit.SystemFilter.AddIn</RootNamespace>
+    <AssemblyName>Egis.Revit.SystemFilter.AddIn</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <UseRevitApi>true</UseRevitApi>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Egis.Revit.SystemFilter.Core\Egis.Revit.SystemFilter.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\EgisIcon.jpg">
+      <LogicalName>EgisIcon.jpg</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Egis.Revit.SystemFilter.addin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!--
+    Déploiement optionnel vers le dossier Addins de Revit :
+      dotnet build -p:DeployAddin=true -f net8.0-windows   (Revit 2026)
+      dotnet build -p:DeployAddin=true -f net10.0-windows  (Revit 2027)
+    Les assemblages vont dans un sous-dossier, le manifeste dans Addins\<version>.
+  -->
+  <Target Name="DeployAddin" AfterTargets="Build" Condition="'$(DeployAddin)' == 'true'">
+    <PropertyGroup>
+      <RevitAddinsDir>$(AppData)\Autodesk\Revit\Addins\$(RevitVersion)</RevitAddinsDir>
+      <RevitPluginDir>$(RevitAddinsDir)\EgisSystemFilter</RevitPluginDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <DeployBinaries Include="$(TargetDir)*.dll" />
+    </ItemGroup>
+    <MakeDir Directories="$(RevitPluginDir)" />
+    <Copy SourceFiles="@(DeployBinaries)" DestinationFolder="$(RevitPluginDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetDir)Egis.Revit.SystemFilter.addin" DestinationFolder="$(RevitAddinsDir)" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="Add-in déployé vers $(RevitAddinsDir)" />
+  </Target>
+
+</Project>

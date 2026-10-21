@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0-windows;net10.0-windows</TargetFrameworks>
+    <RootNamespace>Egis.Revit.SystemFilter.Core</RootNamespace>
+    <AssemblyName>Egis.Revit.SystemFilter.Core</AssemblyName>
+    <!-- RevitAPI dépend de WindowsBase ; WPF est activé pour la résolution des
+         références framework uniquement. Aucun code UI ne doit vivre dans Core. -->
+    <UseWPF>true</UseWPF>
+    <UseRevitApi>true</UseRevitApi>
+  </PropertyGroup>
+
+</Project>

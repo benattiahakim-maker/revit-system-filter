@@ -1,0 +1,45 @@
+# ---- Build output ----
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+artifacts/
+
+# ---- Visual Studio ----
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.userprefs
+
+# ---- Rider / ReSharper ----
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# ---- NuGet ----
+*.nupkg
+*.snupkg
+packages/
+!packages/build/
+project.lock.json
+project.fragment.lock.json
+
+# ---- Test / coverage ----
+TestResults/
+[Cc]overage*/
+*.coverage
+*.coveragexml
+
+# ---- Misc ----
+*.log
+*.tmp
+*.cache
+Thumbs.db
+desktop.ini
