@@ -39,12 +39,12 @@ public sealed class DesignAutomationClientTests
     public async Task Aliases_return_null_on_404_and_a_map_otherwise()
     {
         var (handler, http) = Support.Http();
-        handler.Expect(HttpMethod.Get, $"{Support.Da}/appbundles/Egis.Revit.SystemFilter_R2026/aliases", HttpStatusCode.NotFound, """{"detail":"not found"}""");
-        handler.Expect(HttpMethod.Get, $"{Support.Da}/activities/ExtractRooms_R2026/aliases", HttpStatusCode.OK, """{"data":[{"id":"test","version":3},{"id":"prod","version":2}]}""");
+        handler.Expect(HttpMethod.Get, $"{Support.Da}/appbundles/EgisSystemFilter_R2026/aliases", HttpStatusCode.NotFound, """{"detail":"not found"}""");
+        handler.Expect(HttpMethod.Get, $"{Support.Da}/activities/SystemsInventory_R2026/aliases", HttpStatusCode.OK, """{"data":[{"id":"test","version":3},{"id":"prod","version":2}]}""");
         var client = Client(http);
 
-        Assert.Null(await client.GetAliasesAsync(DaResourceKind.AppBundle, "Egis.Revit.SystemFilter_R2026"));
-        var aliases = await client.GetAliasesAsync(DaResourceKind.Activity, "ExtractRooms_R2026");
+        Assert.Null(await client.GetAliasesAsync(DaResourceKind.AppBundle, "EgisSystemFilter_R2026"));
+        var aliases = await client.GetAliasesAsync(DaResourceKind.Activity, "SystemsInventory_R2026");
 
         Assert.Equal(3, aliases!["test"]);
         Assert.Equal(2, aliases["prod"]);
@@ -56,23 +56,23 @@ public sealed class DesignAutomationClientTests
         var (handler, http) = Support.Http();
         handler.Expect(HttpMethod.Post, $"{Support.Da}/appbundles", HttpStatusCode.OK, UploadResponse);
         handler.Expect(HttpMethod.Post, UploadUrl, HttpStatusCode.OK);
-        handler.Expect(HttpMethod.Post, $"{Support.Da}/appbundles/Egis.Revit.SystemFilter_R2026/aliases", HttpStatusCode.OK, """{"id":"test","version":1}""");
+        handler.Expect(HttpMethod.Post, $"{Support.Da}/appbundles/EgisSystemFilter_R2026/aliases", HttpStatusCode.OK, """{"id":"test","version":1}""");
         var client = Client(http);
-        var definition = new JsonObject { ["id"] = "Egis.Revit.SystemFilter_R2026", ["engine"] = "Autodesk.Revit+2026" };
+        var definition = new JsonObject { ["id"] = "EgisSystemFilter_R2026", ["engine"] = "Autodesk.Revit+2026" };
 
         var created = await client.CreateAppBundleAsync(definition);
-        await client.UploadAppBundleAsync(created.UploadParameters, new MemoryStream("ZIPDATA"u8.ToArray()), "Egis.Revit.SystemFilter_R2026.zip");
-        await client.SetAliasAsync(DaResourceKind.AppBundle, "Egis.Revit.SystemFilter_R2026", "test", created.Version, existing: null);
+        await client.UploadAppBundleAsync(created.UploadParameters, new MemoryStream("ZIPDATA"u8.ToArray()), "EgisSystemFilter_R2026.zip");
+        await client.SetAliasAsync(DaResourceKind.AppBundle, "EgisSystemFilter_R2026", "test", created.Version, existing: null);
 
         Assert.Equal(1, created.Version);
-        Assert.Equal("""{"id":"Egis.Revit.SystemFilter_R2026","engine":"Autodesk.Revit+2026"}""", handler.Requests[0].BodyText);
+        Assert.Equal("""{"id":"EgisSystemFilter_R2026","engine":"Autodesk.Revit+2026"}""", handler.Requests[0].BodyText);
         Assert.Equal("application/json; charset=utf-8", handler.Requests[0].ContentType);
 
         var upload = handler.Requests[1];
         Assert.Null(upload.Authorization); // jamais de jeton APS vers S3
         Assert.StartsWith("multipart/form-data; boundary=", upload.ContentType);
         var body = upload.BodyText;
-        var positions = new[] { "name=\"key\"", "name=\"policy\"", "name=\"x-amz-signature\"", "name=\"success_action_status\"", "name=\"file\"; filename=\"Egis.Revit.SystemFilter_R2026.zip\"" }
+        var positions = new[] { "name=\"key\"", "name=\"policy\"", "name=\"x-amz-signature\"", "name=\"success_action_status\"", "name=\"file\"; filename=\"EgisSystemFilter_R2026.zip\"" }
             .Select(marker => body.IndexOf(marker, StringComparison.Ordinal))
             .ToList();
         Assert.DoesNotContain(-1, positions);
@@ -90,13 +90,13 @@ public sealed class DesignAutomationClientTests
     public async Task New_versions_omit_id_and_existing_alias_is_patched()
     {
         var (handler, http) = Support.Http();
-        handler.Expect(HttpMethod.Post, $"{Support.Da}/appbundles/Egis.Revit.SystemFilter_R2026/versions", HttpStatusCode.OK, UploadResponse.Replace("\"version\":1", "\"version\":4"));
-        handler.Expect(HttpMethod.Patch, $"{Support.Da}/appbundles/Egis.Revit.SystemFilter_R2026/aliases/test", HttpStatusCode.OK, """{"id":"test","version":4}""");
+        handler.Expect(HttpMethod.Post, $"{Support.Da}/appbundles/EgisSystemFilter_R2026/versions", HttpStatusCode.OK, UploadResponse.Replace("\"version\":1", "\"version\":4"));
+        handler.Expect(HttpMethod.Patch, $"{Support.Da}/appbundles/EgisSystemFilter_R2026/aliases/test", HttpStatusCode.OK, """{"id":"test","version":4}""");
         var client = Client(http);
-        var definition = new JsonObject { ["id"] = "Egis.Revit.SystemFilter_R2026", ["engine"] = "Autodesk.Revit+2026" };
+        var definition = new JsonObject { ["id"] = "EgisSystemFilter_R2026", ["engine"] = "Autodesk.Revit+2026" };
 
-        var created = await client.CreateAppBundleVersionAsync("Egis.Revit.SystemFilter_R2026", definition);
-        await client.SetAliasAsync(DaResourceKind.AppBundle, "Egis.Revit.SystemFilter_R2026", "test", created.Version, new Dictionary<string, int> { ["test"] = 3 });
+        var created = await client.CreateAppBundleVersionAsync("EgisSystemFilter_R2026", definition);
+        await client.SetAliasAsync(DaResourceKind.AppBundle, "EgisSystemFilter_R2026", "test", created.Version, new Dictionary<string, int> { ["test"] = 3 });
 
         Assert.Equal(4, created.Version);
         Assert.Equal("""{"engine":"Autodesk.Revit+2026"}""", handler.Requests[0].BodyText);
@@ -108,19 +108,19 @@ public sealed class DesignAutomationClientTests
     public async Task Activity_create_and_version()
     {
         var (handler, http) = Support.Http();
-        handler.Expect(HttpMethod.Post, $"{Support.Da}/activities", HttpStatusCode.OK, """{"id":"nick.ExtractRooms_R2026","version":1}""");
-        handler.Expect(HttpMethod.Post, $"{Support.Da}/activities/ExtractRooms_R2026/versions", HttpStatusCode.OK, """{"id":"nick.ExtractRooms_R2026","version":2}""");
-        handler.Expect(HttpMethod.Post, $"{Support.Da}/activities/ExtractRooms_R2026/aliases", HttpStatusCode.OK, """{"id":"prod","version":2}""");
+        handler.Expect(HttpMethod.Post, $"{Support.Da}/activities", HttpStatusCode.OK, """{"id":"nick.SystemsInventory_R2026","version":1}""");
+        handler.Expect(HttpMethod.Post, $"{Support.Da}/activities/SystemsInventory_R2026/versions", HttpStatusCode.OK, """{"id":"nick.SystemsInventory_R2026","version":2}""");
+        handler.Expect(HttpMethod.Post, $"{Support.Da}/activities/SystemsInventory_R2026/aliases", HttpStatusCode.OK, """{"id":"prod","version":2}""");
         var client = Client(http);
         var activity = new JsonObject
         {
-            ["id"] = "ExtractRooms_R2026",
-            ["commandLine"] = new JsonArray("$(engine.path)\\revitcoreconsole.exe /al \"$(appbundles[Egis.Revit.SystemFilter_R2026].path)\""),
+            ["id"] = "SystemsInventory_R2026",
+            ["commandLine"] = new JsonArray("$(engine.path)\\revitcoreconsole.exe /al \"$(appbundles[EgisSystemFilter_R2026].path)\""),
         };
 
         Assert.Equal(1, await client.CreateActivityAsync(activity));
-        Assert.Equal(2, await client.CreateActivityVersionAsync("ExtractRooms_R2026", activity));
-        await client.CreateAliasAsync(DaResourceKind.Activity, "ExtractRooms_R2026", "prod", 2);
+        Assert.Equal(2, await client.CreateActivityVersionAsync("SystemsInventory_R2026", activity));
+        await client.CreateAliasAsync(DaResourceKind.Activity, "SystemsInventory_R2026", "prod", 2);
 
         // commandLine transmis à l'identique (une seule barre oblique inverse dans la valeur).
         Assert.Contains("\"$(engine.path)\\\\revitcoreconsole.exe", handler.Requests[0].BodyText);

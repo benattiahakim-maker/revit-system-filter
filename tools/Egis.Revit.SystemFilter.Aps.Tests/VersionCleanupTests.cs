@@ -11,7 +11,7 @@ public sealed class VersionCleanupTests
     [Fact]
     public void Keeps_latest_and_aliased_versions_and_deletes_the_rest()
     {
-        var plan = VersionCleanupPlanner.Plan(DaResourceKind.AppBundle, "Egis.Revit.SystemFilter_R2026", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], Aliases, keepLatest: 2);
+        var plan = VersionCleanupPlanner.Plan(DaResourceKind.AppBundle, "EgisSystemFilter_R2026", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], Aliases, keepLatest: 2);
 
         Assert.Equal([1, 2, 4, 5, 6, 7, 8], plan.ToDelete);
         Assert.Equal([3, 9, 10], plan.Kept.Select(k => k.Version));
@@ -26,7 +26,7 @@ public sealed class VersionCleanupTests
     {
         var aliases = new Dictionary<string, int> { ["test"] = 1, ["prod"] = 1, ["old"] = 2 };
 
-        var plan = VersionCleanupPlanner.Plan(DaResourceKind.Activity, "ExtractRooms_R2026", Enumerable.Range(1, 100), aliases, keepLatest: 1);
+        var plan = VersionCleanupPlanner.Plan(DaResourceKind.Activity, "SystemsInventory_R2026", Enumerable.Range(1, 100), aliases, keepLatest: 1);
 
         Assert.DoesNotContain(1, plan.ToDelete);
         Assert.DoesNotContain(2, plan.ToDelete);
@@ -63,14 +63,14 @@ public sealed class VersionCleanupTests
     [Fact]
     public void Description_lists_every_version_to_delete_with_its_request()
     {
-        var plan = VersionCleanupPlanner.Plan(DaResourceKind.Activity, "ExtractRooms_R2026", [1, 2, 3, 9, 10], Aliases, keepLatest: 1);
+        var plan = VersionCleanupPlanner.Plan(DaResourceKind.Activity, "SystemsInventory_R2026", [1, 2, 3, 9, 10], Aliases, keepLatest: 1);
 
         var text = string.Join("\n", plan.Describe());
 
-        Assert.Contains("activities/ExtractRooms_R2026 : 5 version(s), 3 conservée(s), 2 à supprimer.", text);
+        Assert.Contains("activities/SystemsInventory_R2026 : 5 version(s), 3 conservée(s), 2 à supprimer.", text);
         Assert.Contains("conserver v3 (alias prod)", text);
-        Assert.Contains("SUPPRIMER v1 : DELETE /activities/ExtractRooms_R2026/versions/1", text);
-        Assert.Contains("SUPPRIMER v2 : DELETE /activities/ExtractRooms_R2026/versions/2", text);
+        Assert.Contains("SUPPRIMER v1 : DELETE /activities/SystemsInventory_R2026/versions/1", text);
+        Assert.Contains("SUPPRIMER v2 : DELETE /activities/SystemsInventory_R2026/versions/2", text);
     }
 
     [Fact]

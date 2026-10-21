@@ -15,7 +15,7 @@ public sealed class WorkItemTests
         handler.Expect(HttpMethod.Post, $"{Support.Da}/workitems", HttpStatusCode.OK, """{"id":"wi1","status":"pending"}""");
         var workItem = new JsonObject
         {
-            ["activityId"] = "nick.ExtractRooms_R2026+test",
+            ["activityId"] = "nick.SystemsInventory_R2026+test",
             ["arguments"] = new JsonObject { ["settings"] = new JsonObject { ["url"] = "https://s3.test/settings", ["verb"] = "get" } },
         };
 

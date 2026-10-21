@@ -11,7 +11,7 @@ public sealed class DeploymentService
 {
     public const string TestAlias = "test";
     public const string ProdAlias = "prod";
-    public static readonly IReadOnlyList<string> SupportedVersions = ["2025", "2026", "2027"];
+    public static readonly IReadOnlyList<string> SupportedVersions = ["2026", "2027"];
 
     private readonly DesignAutomationClient _client;
     private readonly DefinitionLoader _definitions;
@@ -31,8 +31,8 @@ public sealed class DeploymentService
         _checkBundle = checkBundle ?? AppBundleChecker.Check;
     }
 
-    /// <summary>Nom du ZIP produit par <c>build-appbundle.sh</c>.</summary>
-    public static string BundleFileName(string revitVersion) => $"Egis.Revit.SystemFilter_R{revitVersion}.zip";
+    /// <summary>Nom du ZIP produit par <c>build/package-da.ps1</c>.</summary>
+    public static string BundleFileName(string revitVersion) => $"EgisSystemFilter_R{revitVersion}.zip";
 
     /// <summary>
     /// Commande <c>test</c> : engines vérifiés, puis pour chaque version ZIP contrôlé, nouvelle version d'AppBundle,

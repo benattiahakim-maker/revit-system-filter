@@ -6,7 +6,6 @@ namespace Egis.Revit.SystemFilter.Aps.Tests;
 public sealed class AppBundleCheckerTests
 {
     [Theory]
-    [InlineData("2025")]
     [InlineData("2026")]
     [InlineData("2027")]
     public void Valid_bundle_passes(string version)
@@ -35,17 +34,17 @@ public sealed class AppBundleCheckerTests
         var zip = Path.Combine(temp.Path, "b.zip");
         Support.WriteValidBundle(zip, "2026", entries =>
         {
-            entries.Remove("Egis.Revit.SystemFilter.bundle/Contents/DesignAutomationBridge.dll");
-            entries["Egis.Revit.SystemFilter.bundle/Contents/Egis.Revit.SystemFilter.deps.json"] = [1];
-            entries["Egis.Revit.SystemFilter.bundle/Contents/notes.txt"] = [1];
+            entries.Remove("EgisSystemFilter.bundle/Contents/DesignAutomationBridge.dll");
+            entries["EgisSystemFilter.bundle/Contents/Egis.Revit.SystemFilter.deps.json"] = [1];
+            entries["EgisSystemFilter.bundle/Contents/notes.txt"] = [1];
             entries["Other.bundle/PackageContents.xml"] = [1];
         });
 
         var errors = AppBundleChecker.Check(zip, "2026");
 
-        Assert.Contains(errors, e => e.StartsWith("fichier interdit : Egis.Revit.SystemFilter.bundle/Contents/Egis.Revit.SystemFilter.deps.json", StringComparison.Ordinal));
-        Assert.Contains("fichier non autorisé : Egis.Revit.SystemFilter.bundle/Contents/notes.txt", errors);
-        Assert.Contains("fichier requis manquant : Egis.Revit.SystemFilter.bundle/Contents/DesignAutomationBridge.dll", errors);
+        Assert.Contains(errors, e => e.StartsWith("fichier interdit : EgisSystemFilter.bundle/Contents/Egis.Revit.SystemFilter.deps.json", StringComparison.Ordinal));
+        Assert.Contains("fichier non autorisé : EgisSystemFilter.bundle/Contents/notes.txt", errors);
+        Assert.Contains("fichier requis manquant : EgisSystemFilter.bundle/Contents/DesignAutomationBridge.dll", errors);
         Assert.Contains(errors, e => e.Contains("dossier racine"));
     }
 
@@ -56,8 +55,8 @@ public sealed class AppBundleCheckerTests
         var zip = Path.Combine(temp.Path, "b.zip");
         Support.WriteValidBundle(zip, "2026", entries =>
         {
-            var addin = System.Text.Encoding.UTF8.GetString(entries["Egis.Revit.SystemFilter.bundle/Contents/Egis.Revit.SystemFilter.addin"]);
-            entries["Egis.Revit.SystemFilter.bundle/Contents/Egis.Revit.SystemFilter.addin"] = System.Text.Encoding.UTF8.GetBytes(addin.Replace(@".\Egis.Revit.SystemFilter.dll", @"C:\Addins\Egis.Revit.SystemFilter.dll"));
+            var addin = System.Text.Encoding.UTF8.GetString(entries["EgisSystemFilter.bundle/Contents/EgisSystemFilter.addin"]);
+            entries["EgisSystemFilter.bundle/Contents/EgisSystemFilter.addin"] = System.Text.Encoding.UTF8.GetBytes(addin.Replace(@".\Egis.Revit.SystemFilter.DesignAutomation.dll", @"C:\Addins\Egis.Revit.SystemFilter.dll"));
         });
 
         Assert.Contains(AppBundleChecker.Check(zip, "2026"), e => e.Contains("Assembly"));

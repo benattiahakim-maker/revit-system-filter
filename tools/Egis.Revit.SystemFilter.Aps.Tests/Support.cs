@@ -17,40 +17,37 @@ internal static class Support
         return (handler, new HttpClient(handler));
     }
 
-    /// <summary>ZIP conforme à appbundle.py check pour <paramref name="version"/>.</summary>
+    /// <summary>ZIP conforme à AppBundleChecker pour <paramref name="version"/>.</summary>
     public static void WriteValidBundle(string path, string version, Action<Dictionary<string, byte[]>>? mutate = null)
     {
-        const string contents = "Egis.Revit.SystemFilter.bundle/Contents";
+        const string bundle = "EgisSystemFilter.bundle";
+        const string contents = bundle + "/Contents";
         var framework = version == "2027" ? ".NETCoreApp,Version=v10.0" : ".NETCoreApp,Version=v8.0";
         var entries = new Dictionary<string, byte[]>
         {
-            ["Egis.Revit.SystemFilter.bundle/PackageContents.xml"] = Encoding.UTF8.GetBytes(
+            [$"{bundle}/PackageContents.xml"] = Encoding.UTF8.GetBytes(
                 $"""
                 <ApplicationPackage>
                   <Components>
                     <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="R{version}" SeriesMax="R{version}" />
-                    <ComponentEntry AppName="Egis.Revit.SystemFilter" ModuleName="./Contents/Egis.Revit.SystemFilter.addin" />
+                    <ComponentEntry AppName="EgisSystemFilter_R{version}" ModuleName="./Contents/EgisSystemFilter.addin" />
                   </Components>
                 </ApplicationPackage>
                 """),
-            [$"{contents}/Egis.Revit.SystemFilter.addin"] = Encoding.UTF8.GetBytes(
+            [$"{contents}/EgisSystemFilter.addin"] = Encoding.UTF8.GetBytes(
                 """
                 <RevitAddIns>
                   <AddIn Type="DBApplication">
-                    <Assembly>.\Egis.Revit.SystemFilter.dll</Assembly>
+                    <Assembly>.\Egis.Revit.SystemFilter.DesignAutomation.dll</Assembly>
                     <AddInId>2f3c6c1e-6d1a-4e3b-9a55-0e8a9c4b7d21</AddInId>
-                    <FullClassName>Egis.Revit.SystemFilter.EntryPoint.AutomationApplication</FullClassName>
+                    <FullClassName>Egis.Revit.SystemFilter.DesignAutomation.SystemFilterDbApplication</FullClassName>
                   </AddIn>
                 </RevitAddIns>
                 """),
-            [$"{contents}/Egis.Revit.SystemFilter.dll"] = Encoding.UTF8.GetBytes("MZ…" + framework),
+            [$"{contents}/Egis.Revit.SystemFilter.DesignAutomation.dll"] = Encoding.UTF8.GetBytes("MZ…" + framework),
+            [$"{contents}/Egis.Revit.SystemFilter.Core.dll"] = [0x4D, 0x5A],
+            [$"{contents}/DesignAutomationBridge.dll"] = [0x4D, 0x5A],
         };
-        foreach (var name in new[] { "Application", "Contracts", "Export", "Logging", "Revit" })
-        {
-            entries[$"{contents}/Egis.Revit.SystemFilter.{name}.dll"] = [0x4D, 0x5A];
-        }
-
-        entries[$"{contents}/DesignAutomationBridge.dll"] = [0x4D, 0x5A];
         mutate?.Invoke(entries);
         using var archive = ZipFile.Open(path, ZipArchiveMode.Create);
         foreach (var (name, data) in entries.OrderBy(e => e.Key, StringComparer.Ordinal))
