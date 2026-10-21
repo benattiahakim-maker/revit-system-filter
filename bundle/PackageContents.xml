@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage
+    SchemaVersion="1.0"
+    AutodeskProduct="Revit"
+    ProductType="Application"
+    Name="EgisSystemFilter"
+    AppVersion="2.0.0"
+    FriendlyVersion="2.0.0"
+    ProductCode="{E7B1D9A4-2C83-4F15-9B6E-7A2C1D4E8F30}"
+    Description="Filtrage des systèmes CVCD dans une vue 3D - Egis Bâtiment">
+
+  <CompanyDetails Name="Egis" Url="https://www.egis-group.com" />
+
+  <!-- Revit 2026 -->
+  <Components Description="Revit 2026">
+    <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="R2026" SeriesMax="R2026" />
+    <ComponentEntry
+        AppName="EgisSystemFilter2026"
+        ModuleName="./Contents/2026/Egis.Revit.SystemFilter.DesignAutomation.addin"
+        Version="2.0.0" />
+  </Components>
+
+  <!-- Revit 2027 -->
+  <Components Description="Revit 2027">
+    <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="R2027" SeriesMax="R2027" />
+    <ComponentEntry
+        AppName="EgisSystemFilter2027"
+        ModuleName="./Contents/2027/Egis.Revit.SystemFilter.DesignAutomation.addin"
+        Version="2.0.0" />
+  </Components>
+
+</ApplicationPackage>

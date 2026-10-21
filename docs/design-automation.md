@@ -34,9 +34,44 @@ Voir [`params.sample.json`](../src/Egis.Revit.SystemFilter.DesignAutomation/para
 | `viewName` | `string` | Nom de base de la vue générée |
 | `userPrefix` | `string` | Préfixe des filtres/vues |
 
-## Reste à faire en phase 2
+## Bundle AppBundle
 
-- Référencer le SDK Autodesk DA (`DesignAutomationBridge`) et brancher
-  `DesignAutomationReadyEvent` sur `SystemFilterDbApplication.ExecuteWorkitem`.
-- Fournir le `PackageContents.xml` du bundle `.bundle`.
-- Définir l'`Activity` et l'`AppBundle` APS (CLI ou portail).
+Le point d'entrée headless est `SystemFilterDbApplication` (`IExternalDBApplication`),
+branché sur `DesignAutomationBridge.DesignAutomationReadyEvent`. Le bridge est
+fourni par le moteur à l'exécution : il est référencé en *compile-only*
+(package `Autodesk.Forge.DesignAutomation.Revit`, `ExcludeAssets=runtime`) et
+n'est donc pas embarqué.
+
+Le bundle cible les deux moteurs via un `PackageContents.xml` multi-versions :
+
+```
+EgisSystemFilter.bundle/
+├── PackageContents.xml                 (R2026 + R2027)
+└── Contents/
+    ├── 2026/   Egis.Revit.SystemFilter.DesignAutomation.{dll,addin} + Core.dll
+    └── 2027/   idem (net10)
+```
+
+### Fabriquer le bundle
+
+```powershell
+pwsh ./build/package-da.ps1
+# ou, avec le SDK .NET 10 en scope utilisateur :
+pwsh ./build/package-da.ps1 -DotNet "$env:USERPROFILE\.dotnet10\dotnet.exe"
+```
+
+Produit `artifacts/EgisSystemFilter.bundle/` et `artifacts/EgisSystemFilter.bundle.zip`.
+
+## Côté APS (à faire sur le compte Autodesk)
+
+Ces étapes nécessitent des identifiants APS et se font hors dépôt (CLI APS,
+portail, ou un petit client `Autodesk.Forge.DesignAutomation`) :
+
+1. **AppBundle** : téléverser `EgisSystemFilter.bundle.zip`, moteur
+   `Autodesk.Revit+2026` (ou `+2027`), créer un alias (`prod`).
+2. **Activity** : déclarer les paramètres `rvtFile` (entrée), `params` → `params.json`
+   (entrée) et `result` → `result.rvt` (sortie), référencer l'AppBundle, créer un alias.
+3. **WorkItem** : poster les URLs signées des entrées/sorties pour exécuter.
+
+Le contrat d'entrée/sortie est déjà respecté par le code : lecture de
+`params.json`, écriture de `result.rvt` dans le dossier de travail.
