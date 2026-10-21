@@ -5,8 +5,9 @@
     Le multi-ciblage adresse deux versions de Revit :
       - net8.0-windows  -> Revit 2026 (.NET 8)
       - net10.0-windows -> Revit 2027 (.NET 10)
-    Les chemins RevitApiPath peuvent être redéfinis (CI, poste sans install standard)
-    via -p:Revit2026Path=... / -p:Revit2027Path=...
+    L'API Revit est référencée via les packages NuGet Nice3point (assemblages de
+    référence, non copiés en sortie) : le build fonctionne sans Revit installé,
+    y compris sur un runner CI.
   -->
 
   <PropertyGroup>
@@ -22,41 +23,26 @@
     <Product>Revit System Filter</Product>
     <Version>2.0.0</Version>
     <NeutralLanguage>fr-FR</NeutralLanguage>
-    <!-- Les assemblages Revit ne sont jamais copiés en sortie. -->
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
-    <!-- Bruit habituel des références RevitAPIUI (versions multiples). -->
-    <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
-  <!-- Emplacements d'installation Revit (surchageables). -->
-  <PropertyGroup>
-    <Revit2026Path Condition="'$(Revit2026Path)' == ''">C:\Program Files\Autodesk\Revit 2026</Revit2026Path>
-    <Revit2027Path Condition="'$(Revit2027Path)' == ''">C:\Program Files\Autodesk\Revit 2027</Revit2027Path>
-  </PropertyGroup>
-
-  <!-- Résolution de la version Revit en fonction du Target Framework. -->
+  <!-- Résolution de la version Revit et du package API en fonction du Target Framework. -->
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
     <RevitVersion>2026</RevitVersion>
-    <RevitApiPath>$(Revit2026Path)</RevitApiPath>
+    <RevitApiPackageVersion>2026.0.4</RevitApiPackageVersion>
     <DefineConstants>$(DefineConstants);REVIT2026</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
     <RevitVersion>2027</RevitVersion>
-    <RevitApiPath>$(Revit2027Path)</RevitApiPath>
+    <RevitApiPackageVersion>2027.2.0</RevitApiPackageVersion>
     <DefineConstants>$(DefineConstants);REVIT2027</DefineConstants>
   </PropertyGroup>
 
-  <!-- Références RevitAPI communes, activées par <UseRevitApi>true</UseRevitApi> dans chaque projet. -->
+  <!-- Références de l'API Revit, activées par <UseRevitApi>true</UseRevitApi> dans chaque projet. -->
   <ItemGroup Condition="'$(UseRevitApi)' == 'true'">
-    <Reference Include="RevitAPI">
-      <HintPath>$(RevitApiPath)\RevitAPI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="RevitAPIUI">
-      <HintPath>$(RevitApiPath)\RevitAPIUI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="$(RevitApiPackageVersion)" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="$(RevitApiPackageVersion)" />
   </ItemGroup>
 
 </Project>
