@@ -9,13 +9,12 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
 {
     /// <summary>
     /// Application de base de données headless pour APS Design Automation for Revit.
-    /// S'abonne à l'événement du moteur, lit <c>params.json</c>, applique les filtres
-    /// via les services Core et enregistre le document résultat.
+    /// Au démarrage du workitem, exporte l'inventaire des systèmes du modèle en JSON
+    /// via les services Core — aucune sélection n'est requise en entrée.
     /// </summary>
     public sealed class SystemFilterDbApplication : IExternalDBApplication
     {
-        private const string InputFileName = "params.json";
-        private const string OutputFileName = "result.rvt";
+        private const string OptionsFileName = "options.json";
 
         public ExternalDBApplicationResult OnStartup(ControlledApplication application)
         {
@@ -31,28 +30,23 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
 
         private void OnDesignAutomationReady(object? sender, DesignAutomationReadyEventArgs e)
         {
-            var workingDirectory = Directory.GetCurrentDirectory();
-            ExecuteWorkitem(e.DesignAutomationData.RevitDoc, workingDirectory);
+            ExportInventory(e.DesignAutomationData.RevitDoc, Directory.GetCurrentDirectory());
             e.Succeeded = true;
         }
 
         /// <summary>
-        /// Exécute un workitem : lit <c>params.json</c> dans le dossier de travail,
-        /// applique les filtres puis enregistre le document résultat.
+        /// Lit les options facultatives (<c>options.json</c>) puis écrit l'inventaire
+        /// des systèmes dans le dossier de travail.
         /// </summary>
-        public void ExecuteWorkitem(Document document, string workingDirectory)
+        public string ExportInventory(Document document, string workingDirectory)
         {
             if (document is null)
             {
                 throw new ArgumentNullException(nameof(document));
             }
 
-            var input = DesignAutomationInput.Load(Path.Combine(workingDirectory, InputFileName));
-
-            new SystemFilterAutomation().Run(document, input);
-
-            var outputPath = Path.Combine(workingDirectory, OutputFileName);
-            document.SaveAs(outputPath, new SaveAsOptions { OverwriteExistingFile = true });
+            var options = DesignAutomationOptions.Load(Path.Combine(workingDirectory, OptionsFileName));
+            return new SystemInventoryExport().Export(document, workingDirectory, options);
         }
     }
 }
