@@ -1,0 +1,178 @@
+<Window x:Class="Egis.Revit.SystemFilter.WorkItemRunner.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="EG_ROOM_TRACKER · WorkItemRunner" Width="1360" Height="900" WindowStartupLocation="CenterScreen">
+  <Window.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+  </Window.Resources>
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Background="#0F172A" Padding="20,14">
+      <StackPanel>
+        <TextBlock Text="WorkItemRunner" Foreground="White" FontSize="20" FontWeight="SemiBold" />
+        <TextBlock Foreground="#94A3B8">
+          <Run Text="Identifiants : " /><Run Text="{Binding CredentialSource, Mode=OneWay}" />
+          <Run Text="   ·   WorkItem en cours : " /><Run Text="{Binding WorkItemStatus, Mode=OneWay}" />
+        </TextBlock>
+      </StackPanel>
+    </Border>
+
+    <Border DockPanel.Dock="Top" Background="#FEF3C7" BorderBrush="#F59E0B" BorderThickness="0,0,0,1" Padding="20,8"
+            Visibility="{Binding HasConfigurationBanner, Converter={StaticResource BoolToVisibility}}">
+      <TextBlock Text="{Binding ConfigurationBanner, Mode=OneWay}" Foreground="#78350F" TextWrapping="Wrap" />
+    </Border>
+
+    <Border DockPanel.Dock="Bottom" Background="#E2E8F0" Padding="12,6">
+      <TextBlock Text="{Binding Status}" />
+    </Border>
+
+    <Grid Margin="16">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="440" />
+        <ColumnDefinition Width="16" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Colonne gauche : lancement -->
+      <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock Text="Activity" Style="{StaticResource Heading}" />
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="Version Revit" Style="{StaticResource Hint}" />
+                  <ComboBox ItemsSource="{Binding RevitVersions}" SelectedItem="{Binding SelectedRevitVersion}" Margin="0,2,8,2" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <TextBlock Text="Alias" Style="{StaticResource Hint}" />
+                  <ComboBox ItemsSource="{Binding Aliases}" SelectedItem="{Binding SelectedAlias}" Margin="0,2,0,2" />
+                </StackPanel>
+              </Grid>
+              <TextBlock Text="Nickname APS (APS_NICKNAME)" Style="{StaticResource Hint}" Margin="0,6,0,0" />
+              <TextBox Text="{Binding Nickname, UpdateSourceTrigger=PropertyChanged}" />
+              <TextBlock Text="Bucket OSS (APS_BUCKET, transient 24 h)" Style="{StaticResource Hint}" Margin="0,6,0,0" />
+              <TextBox Text="{Binding BucketKey, UpdateSourceTrigger=PropertyChanged}" />
+              <TextBlock Text="Racine du dépôt (définitions, schéma)" Style="{StaticResource Hint}" Margin="0,6,0,0" />
+              <TextBox Text="{Binding RepositoryRoot, UpdateSourceTrigger=LostFocus}" />
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock Text="Entrées" Style="{StaticResource Heading}" />
+              <TextBlock Text="ZIP de la maquette (RVT principal et liens, docs/INPUTS.md)" Style="{StaticResource Hint}" />
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Content="…" Style="{StaticResource Secondary}" Command="{Binding BrowseZipCommand}" />
+                <TextBox Text="{Binding ZipPath, UpdateSourceTrigger=PropertyChanged}" />
+              </DockPanel>
+              <DockPanel Margin="0,8,0,0">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                  <Button Content="Ouvrir…" Style="{StaticResource Secondary}" Command="{Binding OpenSettingsCommand}" />
+                  <Button Content="Exemple" Style="{StaticResource Secondary}" Command="{Binding LoadExampleSettingsCommand}" Margin="0,2,0,2" />
+                </StackPanel>
+                <TextBlock Text="settings.json" Style="{StaticResource Hint}" VerticalAlignment="Center" />
+              </DockPanel>
+              <TextBox Text="{Binding SettingsText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" AcceptsTab="True"
+                       FontFamily="Consolas" Height="220" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,4,0,4" />
+              <TextBlock Text="{Binding SettingsValidation}" Style="{StaticResource Hint}" />
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource Card}">
+            <StackPanel>
+              <TextBlock Text="Exécution" Style="{StaticResource Heading}" />
+              <DockPanel>
+                <TextBlock Text="Suivi toutes les (s)" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBox Text="{Binding PollIntervalSeconds, UpdateSourceTrigger=PropertyChanged}" Width="60" HorizontalAlignment="Left" />
+              </DockPanel>
+              <WrapPanel Margin="0,8,0,0">
+                <Button Content="Lancer…" Command="{Binding RunCommand}" />
+                <Button Content="Arrêter le suivi" Style="{StaticResource Secondary}" Command="{Binding StopFollowingCommand}" />
+                <Button Content="Annuler le WorkItem…" Style="{StaticResource DangerButton}" Command="{Binding CancelWorkItemCommand}" />
+              </WrapPanel>
+              <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                         Text="Le plan (fichiers, objets OSS, Activity) est affiché avant tout téléversement : un WorkItem est facturé. Aucune URL signée n'est affichée." />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Colonne droite : historique et résultats -->
+      <Grid Grid.Column="2">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="300" />
+          <ColumnDefinition Width="12" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Border Style="{StaticResource Card}" Margin="0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="Historique" Style="{StaticResource Heading}" />
+            <WrapPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+              <Button Content="Actualiser" Style="{StaticResource Secondary}" Command="{Binding RefreshHistoryCommand}" />
+              <Button Content="Récupérer" ToolTip="Relit le statut du WorkItem sélectionné et télécharge rapport et result.json (même après un redémarrage)" Command="{Binding RecoverCommand}" />
+              <Button Content="Exporter…" Command="{Binding ExportRunCommand}" />
+            </WrapPanel>
+            <ListBox ItemsSource="{Binding History}" SelectedItem="{Binding SelectedRun}" DisplayMemberPath="Summary" BorderThickness="0" />
+          </DockPanel>
+        </Border>
+
+        <TabControl Grid.Column="2">
+          <TabItem Header="Résultat">
+            <DockPanel Margin="8">
+              <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Result.Summary}" Margin="0,0,0,8">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock><Run Text="{Binding Key, Mode=OneWay}" FontWeight="SemiBold" /><Run Text=" : " /><Run Text="{Binding Value, Mode=OneWay}" /></TextBlock>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Expander DockPanel.Dock="Bottom" Header="Écarts au schéma result.schema.json" Margin="0,8,0,0">
+                <ListBox ItemsSource="{Binding Result.SchemaErrors}" MaxHeight="120" />
+              </Expander>
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="*" />
+                  <RowDefinition Height="8" />
+                  <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <!-- Colonnes générées depuis les clés de systems[] du result.json (MainWindow.xaml.cs) -->
+                <DataGrid x:Name="SystemsGrid" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column"
+                          CanUserSortColumns="True" />
+                <DataGrid Grid.Row="2" ItemsSource="{Binding Result.Anomalies}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="180" />
+                    <DataGridTextColumn Header="Gravité" Binding="{Binding Severity}" Width="70" />
+                    <DataGridTextColumn Header="Portée" Binding="{Binding Scope}" Width="80" />
+                    <DataGridTextColumn Header="Élément" Binding="{Binding ElementId}" Width="80" />
+                    <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*" />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Grid>
+            </DockPanel>
+          </TabItem>
+          <TabItem Header="Rapport APS">
+            <TextBox Text="{Binding ReportText, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" Margin="8"
+                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
+          </TabItem>
+          <TabItem Header="Journal">
+            <ListBox ItemsSource="{Binding Log}" BorderThickness="0" FontFamily="Consolas" FontSize="12" Margin="8">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock TextWrapping="Wrap">
+                    <Run Text="{Binding TimeText, Mode=OneWay}" Foreground="{StaticResource Muted}" />
+                    <Run Text="{Binding Level, Mode=OneWay}" FontWeight="SemiBold" />
+                    <Run Text="{Binding Message, Mode=OneWay}" />
+                  </TextBlock>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </TabItem>
+        </TabControl>
+      </Grid>
+    </Grid>
+  </DockPanel>
+</Window>
