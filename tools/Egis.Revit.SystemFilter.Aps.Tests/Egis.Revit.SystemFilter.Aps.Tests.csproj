@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Tests unitaires de la bibliothèque APS sur HTTP simulé : aucun appel réseau, aucun identifiant (EGR-19). -->
+  <PropertyGroup>
+    <TargetFramework>$(CoreTargetFramework)</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>Egis.Revit.SystemFilter.Aps.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Egis.Revit.SystemFilter.Aps\Egis.Revit.SystemFilter.Aps.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Définitions réelles du dépôt : les tests de publication les lisent telles quelles. -->
+    <None Include="..\..\src\Packaging\definitions\**\*.json" LinkBase="Data\definitions" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

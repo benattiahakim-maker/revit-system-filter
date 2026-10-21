@@ -2,7 +2,7 @@
 <RevitAddIns>
   <AddIn Type="DBApplication">
     <Name>Egis System Filter (Design Automation)</Name>
-    <Assembly>Egis.Revit.SystemFilter.DesignAutomation.dll</Assembly>
+    <Assembly>./Egis.Revit.SystemFilter.DesignAutomation.dll</Assembly>
     <AddInId>C4E7A9D2-5B61-4F3A-8E2D-9A1B3C4D5E6F</AddInId>
     <FullClassName>Egis.Revit.SystemFilter.DesignAutomation.SystemFilterDbApplication</FullClassName>
     <VendorId>EGIS</VendorId>

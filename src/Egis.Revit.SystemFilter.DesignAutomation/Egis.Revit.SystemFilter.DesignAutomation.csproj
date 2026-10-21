@@ -13,22 +13,17 @@
     <ProjectReference Include="..\Egis.Revit.SystemFilter.Core\Egis.Revit.SystemFilter.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="Egis.Revit.SystemFilter.DesignAutomation.addin">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
   <!--
-    DesignAutomationBridge est fourni par le moteur Design Automation à l'exécution.
-    On le référence en compile-only (ExcludeAssets=runtime) pour ne pas l'embarquer
-    dans le bundle. Version alignée sur la version Revit de chaque cible.
+    DesignAutomationBridge.dll est EMBARQUÉ dans le bundle (il déclenche
+    DesignAutomationReadyEvent). On le laisse donc être copié en sortie.
+    L'API Revit (Nice3point) reste en référence seule (fournie par le moteur).
+    Version alignée sur la version Revit de chaque cible.
   -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
-    <PackageReference Include="Autodesk.Forge.DesignAutomation.Revit" Version="2026.0.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Autodesk.Forge.DesignAutomation.Revit" Version="2026.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
-    <PackageReference Include="Autodesk.Forge.DesignAutomation.Revit" Version="2027.0.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Autodesk.Forge.DesignAutomation.Revit" Version="2027.0.0" />
   </ItemGroup>
 
 </Project>

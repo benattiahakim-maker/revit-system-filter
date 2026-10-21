@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Journal structuré sur la console (ILogService). Aucune référence Revit. -->
+  <PropertyGroup>
+    <TargetFramework>$(CoreTargetFramework)</TargetFramework>
+    <RootNamespace>Egis.Revit.SystemFilter.Logging</RootNamespace>
+  </PropertyGroup>
+</Project>
