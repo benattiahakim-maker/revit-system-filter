@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Tests de WorkItemRunner hors WPF (ViewModel, arguments, contrôles, résultats, historique) sur APS simulé. -->
+  <PropertyGroup>
+    <TargetFramework>$(CoreTargetFramework)</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>Egis.Revit.SystemFilter.WorkItemRunner.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Egis.Revit.SystemFilter.WorkItemRunner.Core\Egis.Revit.SystemFilter.WorkItemRunner.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Doublure partagée avec les tests de la bibliothèque APS (dossier temporaire). -->
+    <Compile Include="..\Egis.Revit.SystemFilter.Aps.Tests\Support.cs" Link="Shared\Support.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Aps.Tests\FakeHttpHandler.cs" Link="Shared\FakeHttpHandler.cs" />
+    <!-- Faux dépôt : définitions réelles. -->
+    <None Include="..\..\src\Packaging\definitions\**\*.json" LinkBase="Data\repo\src\Packaging\definitions" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

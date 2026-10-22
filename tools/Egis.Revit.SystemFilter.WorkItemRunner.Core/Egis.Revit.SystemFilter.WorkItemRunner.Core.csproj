@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- ViewModels et services de WorkItemRunner, sans aucun type WPF : testables sous Linux. -->
+  <PropertyGroup>
+    <TargetFramework>$(CoreTargetFramework)</TargetFramework>
+    <RootNamespace>Egis.Revit.SystemFilter.WorkItemRunner</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Egis.Revit.SystemFilter.WorkItemRunner.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Egis.Revit.SystemFilter.Aps\Egis.Revit.SystemFilter.Aps.csproj" />
+  </ItemGroup>
+</Project>
