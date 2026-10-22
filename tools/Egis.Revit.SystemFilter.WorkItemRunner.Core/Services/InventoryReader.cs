@@ -59,12 +59,22 @@ public sealed class InventoryReader
             .GroupBy(s => Id(s["systemTypeId"]))
             .ToDictionary(g => g.Key, g => g.OrderBy(s => Text(s["name"]), StringComparer.CurrentCulture).ToList());
 
-        var elementsBySystem = elements.OfType<JsonObject>()
-            .GroupBy(e => Id(e["systemId"]))
-            .ToDictionary(
-                g => g.Key,
-                g => g.OrderBy(e => Text(e["category"]), StringComparer.Ordinal)
-                      .ThenBy(e => Text(e["name"]), StringComparer.CurrentCulture).ToList());
+        // Un élément est rangé sous chacun de ses parents système (clés de parentIds).
+        var elementsBySystem = new Dictionary<long, List<JsonObject>>();
+        foreach (var element in elements.OfType<JsonObject>()
+                     .OrderBy(e => Text(e["category"]), StringComparer.Ordinal)
+                     .ThenBy(e => Text(e["name"]), StringComparer.CurrentCulture))
+        {
+            foreach (var parentId in ParentIds(element))
+            {
+                if (!elementsBySystem.TryGetValue(parentId, out var list))
+                {
+                    elementsBySystem[parentId] = list = [];
+                }
+
+                list.Add(element);
+            }
+        }
 
         var tree = new List<TableRow>();
         foreach (var type in systemTypes.OfType<JsonObject>().OrderBy(t => Text(t["name"]), StringComparer.CurrentCulture))
@@ -166,6 +176,29 @@ public sealed class InventoryReader
 
     private static long Id(JsonNode? node) =>
         node is JsonValue value && value.TryGetValue<long>(out var id) ? id : long.MinValue;
+
+    /// <summary>Clés des parents système d'un élément (parentIds ; repli sur l'ancien systemId).</summary>
+    private static IEnumerable<long> ParentIds(JsonObject element)
+    {
+        if (element["parentIds"] is JsonArray array)
+        {
+            foreach (var node in array)
+            {
+                if (node is JsonValue value && value.TryGetValue<long>(out var id))
+                {
+                    yield return id;
+                }
+            }
+        }
+        else if (element["systemId"] is { } legacy)
+        {
+            var single = Id(legacy);
+            if (single != long.MinValue)
+            {
+                yield return single;
+            }
+        }
+    }
 
     private static string Text(JsonNode? node) => node?.ToString() ?? "—";
 

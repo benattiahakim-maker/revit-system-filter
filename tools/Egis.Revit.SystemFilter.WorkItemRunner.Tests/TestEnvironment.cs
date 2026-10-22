@@ -27,9 +27,9 @@ internal sealed class TestEnvironment : IDisposable
             { "id": 202, "uniqueId": "u-202", "name": "EU-01", "systemTypeId": 112 }
           ],
           "elements": [
-            { "id": 9001, "uniqueId": "u-9001", "category": "DuctFitting", "domain": "Duct", "family": "Coude", "type": "R1", "name": "C1", "level": "R+12", "size": "300x200", "lengthMm": 2450.0, "systemId": 201 },
-            { "id": 9002, "uniqueId": "u-9002", "category": "MechanicalEquipment", "domain": "Duct", "family": "CTA", "type": "T1", "name": "CTA-1", "level": "R+12", "materiel": "CTA BUREAUX", "numCta": "ASF-01", "systemId": 201 },
-            { "id": 9003, "uniqueId": "u-9003", "category": "PipeCurves", "domain": "Pipe", "family": "Tube", "type": "PVC", "name": "P1", "level": "R+1", "size": "DN50", "lengthMm": 1200.0, "systemId": 202 }
+            { "id": 9001, "uniqueId": "u-9001", "category": "DuctFitting", "domain": "Duct", "family": "Coude", "type": "R1", "name": "C1", "level": "R+12", "size": "300x200", "lengthMm": 2450.0, "parentIds": [201] },
+            { "id": 9002, "uniqueId": "u-9002", "category": "MechanicalEquipment", "domain": "Duct", "family": "CTA", "type": "T1", "name": "CTA-1", "level": "R+12", "materiel": "CTA BUREAUX", "numCta": "ASF-01", "parentIds": [201] },
+            { "id": 9003, "uniqueId": "u-9003", "category": "PipeCurves", "domain": "Pipe", "family": "Tube", "type": "PVC", "name": "P1", "level": "R+1", "size": "DN50", "lengthMm": 1200.0, "parentIds": [202] }
           ]
         }
         """;

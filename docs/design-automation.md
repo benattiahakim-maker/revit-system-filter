@@ -27,7 +27,7 @@ Trois collections à plat reliées par clés (chaque **enfant référence son pa
 
 - `systemTypes[]` — `{ id, name, domain, classification }`
 - `systems[]` — `{ id, uniqueId, name, systemTypeId }` → parent type
-- `elements[]` — `{ id, uniqueId, category, domain, family, type, name, level, size, lengthMm, [materiel, numCta], systemId }` → parent système
+- `elements[]` — `{ id, uniqueId, category, domain, family, type, name, level, size, lengthMm, [materiel, numCta], parentIds }` → `parentIds` liste les clés des parents (aujourd'hui le ou les systèmes ; en V2 s'y ajouteront les espaces — voir [cahier des charges](CAHIER-DES-CHARGES.md))
 
 ```jsonc
 {
@@ -40,12 +40,14 @@ Trois collections à plat reliées par clés (chaque **enfant référence son pa
   "elements":    [
     { "id": 9001, "uniqueId": "…", "category": "DuctFitting", "domain": "Duct",
       "family": "Coude rectangulaire", "type": "Rayon 1.0 W", "name": "…",
-      "level": "R+12", "size": "300x200", "lengthMm": 2450.0, "systemId": 201 }
+      "level": "R+12", "size": "300x200", "lengthMm": 2450.0, "parentIds": [ 201 ] }
   ]
 }
 ```
 
-Les champs nuls sont omis. `domain` vaut `Duct` ou `Pipe`. Catégories couvertes :
+Les champs nuls sont omis. `domain` vaut `Duct` ou `Pipe`. `parentIds` ne porte que
+des clés (le nom du parent vit une seule fois dans sa collection) ; une clé se résout
+dans `systems` (parent système) ou, en V2, dans `spaces` (parent espace). Catégories couvertes :
 
 | Domaine | Catégories |
 |---------|------------|

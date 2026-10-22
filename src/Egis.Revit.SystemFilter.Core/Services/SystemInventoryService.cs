@@ -181,7 +181,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 Level = GetLevelName(document, element),
                 Size = GetSize(element),
                 LengthMm = GetLengthMm(element),
-                SystemId = systemId,
+                ParentIds = new List<long> { systemId },
             };
 
             if (builtInCategory == BuiltInCategory.OST_MechanicalEquipment)
