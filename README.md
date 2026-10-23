@@ -76,6 +76,9 @@ ouvre lui-même le modèle principal après avoir redirigé ses liens vers le do
 | `settings` | get | `false` | `settings.json` | facultatif, voir ci-dessous |
 | `result` | put | `true` | `result` | `output.zip` : `systems-inventory.json` (format 1.0 inchangé) + `run.log` |
 
+`systems-inventory.json` : `elements[].parentIds` contient **tous** les systèmes de l'élément
+(sans doublon, dans l'ordre de première rencontre), pas seulement le premier.
+
 `settings.json` (clés inconnues refusées, toutes facultatives) :
 
 ```json
@@ -92,8 +95,13 @@ ouvre lui-même le modèle principal après avoir redirigé ses liens vers le do
   à la racine du ZIP est retenu ; sinon le job échoue avec un message dans `run.log`.
 - Extraction : chemins absolus, `..` et doublons refusés ; liens symboliques refusés ;
   plafonds de 1000 entrées et 4 Gio décompressés (octets réellement lus).
+  **Attention :** avec `inputZip` en `zip: true`, c'est Design Automation qui décompresse le ZIP
+  *avant* l'exécution de notre code. Les plafonds et contrôles de chemins sont donc vérifiés
+  **après** l'écriture sur le disque du moteur (le job échoue alors proprement, mais l'espace a été
+  consommé). Le backend doit donc plafonner le ZIP (taille, nombre d'entrées, chemins) **avant l'envoi**.
+  L'extraction sécurisée par notre code ne s'applique que si l'entrée arrive sous forme de fichier ZIP.
 - Liens Revit : résolus uniquement dans le dossier extrait (chemin relatif au modèle principal,
-  puis nom de fichier unique). Un lien introuvable n'est pas chargé et apparaît dans `run.log`
+  puis nom de fichier unique ; ce 2e cas est signalé dans `run.log` par « résolu par nom »). Un lien introuvable n'est pas chargé et apparaît dans `run.log`
   (`WARN lien manquant : X.rvt`) ; le job continue.
 - `run.log` : court, sans chemin absolu ni URL ni secret (masqués). Toujours écrit, même en échec.
 
@@ -114,7 +122,8 @@ dotnet test src/Egis.Revit.SystemFilter.DesignAutomation.Io.Tests
    (arguments `inputZip` / `settings` / `result` ; l'ancien contrat `rvtFile` / `options` disparaît
    de cette version) et la pointer sur un alias de test, **pas** sur l'alias utilisé en production.
 4. Test réel : un `.rvt` seul zippé, sans `settings.json` ; puis un ZIP avec liens + `mainModelPath` ;
-   puis un ZIP où un lien manque (vérifier `run.log`).
+   puis un ZIP où un lien manque (vérifier `run.log`) ; enfin un cas en échec (ex. `mainModelPath`
+   absent du ZIP) pour vérifier que `result/run.log` est bien envoyé quand `Succeeded` vaut `false`.
 5. Seulement ensuite, régler l'alias de l'Activity systèmes dans l'admin du backend.
    Les WorkItems déjà lancés sur l'ancienne version ne sont pas concernés.
 

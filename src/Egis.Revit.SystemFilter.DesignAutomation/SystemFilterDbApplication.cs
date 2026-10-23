@@ -94,12 +94,12 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
                 if (reference.ExternalFileReferenceType != ExternalFileReferenceType.RevitLink) continue;
 
                 var saved = ModelPathUtils.ConvertModelPathToUserVisiblePath(reference.GetPath());
-                var resolved = resolver.Resolve(saved);
+                var resolved = resolver.Resolve(saved, out var byName);
                 if (resolved != null)
                 {
                     var target = ModelPathUtils.ConvertUserVisiblePathToModelPath(resolver.FullPath(resolved));
                     data.SetDesiredReferenceData(id, target, PathType.Absolute, true);
-                    ws.Log.Info($"lien chargé : {resolved}");
+                    ws.Log.Info(LinkResolver.ResolvedMessage(resolved, byName));
                     found++;
                 }
                 else

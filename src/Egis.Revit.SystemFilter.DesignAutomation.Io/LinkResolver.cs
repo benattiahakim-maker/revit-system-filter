@@ -24,8 +24,12 @@ namespace Egis.Revit.SystemFilter.DesignAutomation.Io
         }
 
         /// <summary>Chemin relatif ('/') du fichier retenu, ou null si le lien est introuvable dans le ZIP.</summary>
-        public string? Resolve(string? savedPath)
+        public string? Resolve(string? savedPath) => Resolve(savedPath, out _);
+
+        /// <summary>Comme <see cref="Resolve(string?)"/> ; <paramref name="byName"/> vaut vrai si résolu à la 2e étape (nom de fichier).</summary>
+        public string? Resolve(string? savedPath, out bool byName)
         {
+            byName = false;
             if (string.IsNullOrWhiteSpace(savedPath)) return null;
             var saved = savedPath.Replace('\\', '/');
 
@@ -47,8 +51,14 @@ namespace Egis.Revit.SystemFilter.DesignAutomation.Io
             if (fileName.Length == 0) return null;
             var matches = _entries.Where(e => !string.Equals(e, _mainModel, StringComparison.OrdinalIgnoreCase)
                                               && string.Equals(e.Split('/').Last(), fileName, StringComparison.OrdinalIgnoreCase)).ToList();
-            return matches.Count == 1 ? matches[0] : null;
+            if (matches.Count != 1) return null;
+            byName = true;
+            return matches[0];
         }
+
+        /// <summary>Ligne run.log d'un lien résolu (« résolu par nom » pour la 2e étape).</summary>
+        public static string ResolvedMessage(string relative, bool byName) =>
+            byName ? $"lien chargé : {relative} (résolu par nom)" : $"lien chargé : {relative}";
 
         /// <summary>Chemin complet (dans le dossier extrait) d'une entrée résolue.</summary>
         public string FullPath(string relative) => PathRules.Contain(_root, relative);

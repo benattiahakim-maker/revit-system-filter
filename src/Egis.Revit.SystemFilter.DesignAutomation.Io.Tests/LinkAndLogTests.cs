@@ -21,6 +21,23 @@ public class LinkAndLogTests
     }
 
     [Fact]
+    public void Lien_resolu_par_nom_signale_dans_run_log()
+    {
+        using var t = new TempDir();
+        var r = new LinkResolver(t.Path, Entries, "Main/Main.rvt");
+        Assert.Equal("Links/CVC.rvt", r.Resolve("C:\\Projets\\X\\CVC.rvt", out var byName));
+        Assert.True(byName);
+        Assert.Equal("Links/CVC.rvt", r.Resolve("../Links/CVC.rvt", out var relative));
+        Assert.False(relative);
+
+        var log = new RunLog();
+        log.Info(LinkResolver.ResolvedMessage("Links/CVC.rvt", true));
+        log.Info(LinkResolver.ResolvedMessage("Links/PSY.rvt", false));
+        Assert.Contains("INFO lien chargé : Links/CVC.rvt (résolu par nom)", log.ToString());
+        Assert.DoesNotContain("PSY.rvt (résolu par nom)", log.ToString());
+    }
+
+    [Fact]
     public void Lien_ambigu_ou_absent_ou_hors_dossier_non_resolu()
     {
         using var t = new TempDir();
