@@ -293,6 +293,11 @@ public sealed class MainViewModel : ObservableObject
     public void Initialize()
     {
         RestoreLastConfig();
+        foreach (var warning in _options.Warnings)
+        {
+            AddLog("warning", warning);
+        }
+
         if (HasConfigurationBanner)
         {
             AddLog("warning", ConfigurationBanner);

@@ -70,7 +70,7 @@ public sealed class WorkItemRunnerService(
     {
         if (string.IsNullOrWhiteSpace(bucketKey))
         {
-            throw new InvalidOperationException("Bucket OSS inconnu : définir APS_BUCKET (ou APS_CLIENT_ID).");
+            throw new InvalidOperationException("Bucket OSS inconnu : définir APS_BUCKET_KEY (ou APS_CLIENT_ID).");
         }
 
         if (!RunnerOptions.IsValidBucketKey(bucketKey))
