@@ -106,3 +106,9 @@ Produit `artifacts/EgisSystemFilter.bundle/` et son `.zip`.
 2. **Activity** : paramètres `rvtFile` (entrée), `options` → `options.json` (entrée, facultatif),
    `result` → `systems-inventory.json` (sortie) ; créer un alias.
 3. **WorkItem** : poster les URLs signées pour lancer l'exécution.
+
+## Rechargement des liens après ouverture
+
+Avant ouverture, les liens sont redirigés vers le dossier extrait (TransmissionData). Après ouverture, chaque `RevitLinkType` encore non chargé est cherché dans le dossier de travail (chemin relatif au modèle principal, puis nom de fichier unique, récursif) et rechargé par `RevitLinkType.LoadFrom(…, new WorksetConfiguration())` dans une transaction. `run.log` : une ligne `INFO lien rechargé : X.rvt chargé depuis …` ou `INFO lien rechargé : X.rvt introuvable dans le dossier de travail` par lien.
+
+Maquette hôte : `settings.json` → `mainModelPath` (alias `hostModel`), sinon l'unique `.rvt` à la racine du ZIP.

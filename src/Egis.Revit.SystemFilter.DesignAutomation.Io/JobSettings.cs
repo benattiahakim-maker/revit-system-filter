@@ -15,7 +15,7 @@ namespace Egis.Revit.SystemFilter.DesignAutomation.Io
     {
         public const string DefaultOutputFileName = "systems-inventory.json";
         public const int MaxSettingsBytes = 64 * 1024;
-        private static readonly string[] Allowed = { "schemaVersion", "mainModelPath", "outputFileName", "includeDuctSystems", "includePipingSystems" };
+        private static readonly string[] Allowed = { "schemaVersion", "mainModelPath", "hostModel", "outputFileName", "includeDuctSystems", "includePipingSystems" };
 
         public string SchemaVersion { get; private set; } = "1.0";
         public string? MainModelPath { get; private set; }
@@ -57,6 +57,7 @@ namespace Egis.Revit.SystemFilter.DesignAutomation.Io
                             if (!System.Text.RegularExpressions.Regex.IsMatch(v, "^1\\.[0-9]+$")) throw new InputArchiveException("settings.schemaVersion invalide (1.x attendu).");
                             s.SchemaVersion = v; break;
                         case "mainModelPath":
+                        case "hostModel": // alias de mainModelPath
                             s.MainModelPath = PathRules.NormalizeRelative(String(p, key));
                             if (!s.MainModelPath.EndsWith(".rvt", StringComparison.OrdinalIgnoreCase)) throw new InputArchiveException("settings.mainModelPath doit désigner un .rvt.");
                             break;

@@ -60,6 +60,12 @@ namespace Egis.Revit.SystemFilter.DesignAutomation.Io
         public static string ResolvedMessage(string relative, bool byName) =>
             byName ? $"lien chargé : {relative} (résolu par nom)" : $"lien chargé : {relative}";
 
+        /// <summary>Ligne run.log du rechargement après ouverture d'un lien non chargé.</summary>
+        public static string ReloadMessage(string linkName, string? relative, string? error = null) =>
+            relative is null ? $"lien rechargé : {linkName} introuvable dans le dossier de travail"
+            : error is null ? $"lien rechargé : {linkName} chargé depuis {relative}"
+            : $"lien rechargé : {linkName} échec du chargement depuis {relative} ({error})";
+
         /// <summary>Chemin complet (dans le dossier extrait) d'une entrée résolue.</summary>
         public string FullPath(string relative) => PathRules.Contain(_root, relative);
 
