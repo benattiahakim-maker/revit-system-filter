@@ -1,5 +1,7 @@
 # APS Design Automation for Revit
 
+> **Mise à jour (feat/zip-io)** : l'Activity prend désormais `inputZip` / `settings` (settings.json) / `result` (output.zip). Les mentions de `rvtFile` et `options.json` ci-dessous décrivent l'ancien contrat ; le contrat à jour est dans le README (section « Design Automation : contrat ZIP »).
+
 Le projet `Egis.Revit.SystemFilter.DesignAutomation` s'exécute **sans interface**,
 dans l'environnement headless de
 [APS Design Automation for Revit](https://aps.autodesk.com/en/docs/design-automation/v3/).

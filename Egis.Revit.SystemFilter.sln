@@ -31,6 +31,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Egis.Revit.SystemFilter.Wor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Egis.Revit.SystemFilter.WorkItemRunner.Tests", "tools\Egis.Revit.SystemFilter.WorkItemRunner.Tests\Egis.Revit.SystemFilter.WorkItemRunner.Tests.csproj", "{2AFCFA5E-9784-40E4-8EA4-12E937BDCBEC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Egis.Revit.SystemFilter.DesignAutomation.Io", "src\Egis.Revit.SystemFilter.DesignAutomation.Io\Egis.Revit.SystemFilter.DesignAutomation.Io.csproj", "{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Egis.Revit.SystemFilter.DesignAutomation.Io.Tests", "src\Egis.Revit.SystemFilter.DesignAutomation.Io.Tests\Egis.Revit.SystemFilter.DesignAutomation.Io.Tests.csproj", "{C31E034B-89B3-45F5-B2B5-96028548F37F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -185,6 +189,30 @@ Global
 		{2AFCFA5E-9784-40E4-8EA4-12E937BDCBEC}.Release|x64.Build.0 = Release|Any CPU
 		{2AFCFA5E-9784-40E4-8EA4-12E937BDCBEC}.Release|x86.ActiveCfg = Release|Any CPU
 		{2AFCFA5E-9784-40E4-8EA4-12E937BDCBEC}.Release|x86.Build.0 = Release|Any CPU
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Debug|Any CPU.Build.0 = Debug|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Debug|x64.ActiveCfg = Debug|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Debug|x64.Build.0 = Debug|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Debug|x86.ActiveCfg = Debug|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Debug|x86.Build.0 = Debug|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Release|Any CPU.ActiveCfg = Release|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Release|Any CPU.Build.0 = Release|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Release|x64.ActiveCfg = Release|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Release|x64.Build.0 = Release|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Release|x86.ActiveCfg = Release|x64
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0}.Release|x86.Build.0 = Release|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Debug|Any CPU.Build.0 = Debug|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Debug|x64.ActiveCfg = Debug|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Debug|x64.Build.0 = Debug|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Debug|x86.ActiveCfg = Debug|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Debug|x86.Build.0 = Debug|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Release|Any CPU.ActiveCfg = Release|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Release|Any CPU.Build.0 = Release|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Release|x64.ActiveCfg = Release|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Release|x64.Build.0 = Release|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Release|x86.ActiveCfg = Release|x64
+		{C31E034B-89B3-45F5-B2B5-96028548F37F}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -202,5 +230,7 @@ Global
 		{E9118C9D-58BE-4DA8-A071-3DF1E52DAB26} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 		{25965F2E-FA44-4F30-9CA0-B08E59389629} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 		{2AFCFA5E-9784-40E4-8EA4-12E937BDCBEC} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
+		{FC8430CB-75C9-4A53-A06B-52FBFE2C87A0} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{C31E034B-89B3-45F5-B2B5-96028548F37F} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

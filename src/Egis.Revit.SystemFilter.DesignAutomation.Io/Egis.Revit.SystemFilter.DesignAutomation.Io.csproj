@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Logique d'entrée/sortie du workitem (ZIP d'entrée, settings.json, liens, ZIP de sortie, run.log).
+    AUCUNE dépendance Revit : testable sous Linux avec `dotnet test`.
+    net8.0 : chargeable par les moteurs Revit 2026 (.NET 8) et 2027 (.NET 10).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Egis.Revit.SystemFilter.DesignAutomation.Io</RootNamespace>
+    <AssemblyName>Egis.Revit.SystemFilter.DesignAutomation.Io</AssemblyName>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Egis.Revit.SystemFilter.DesignAutomation.Io.Tests" />
+  </ItemGroup>
+
+</Project>

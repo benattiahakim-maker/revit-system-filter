@@ -40,17 +40,20 @@ public sealed class WorkItemRunnerService(
     RunHistory history,
     TimeProvider? timeProvider = null)
 {
-    /// <summary>Nom local de la sortie (paramètre <c>result</c> de l'Activity).</summary>
+    /// <summary>Inventaire extrait du ZIP de sortie (paramètre <c>result</c>) et conservé dans l'historique local.</summary>
     public const string ResultLocalName = "systems-inventory.json";
+
+    /// <summary>Journal du moteur extrait du ZIP de sortie.</summary>
+    public const string RunLogName = "run.log";
 
     /// <summary>Paramètre de sortie de l'Activity.</summary>
     public const string ResultParameter = "result";
 
-    /// <summary>Nom local de l'entrée « maquette ».</summary>
-    public const string ModelLocalName = "input.rvt";
+    /// <summary>Nom local de l'entrée <c>inputZip</c> (ZIP contenant la maquette à sa racine).</summary>
+    public const string ModelLocalName = "input";
 
-    /// <summary>Nom local de l'entrée « options ».</summary>
-    public const string OptionsLocalName = "options.json";
+    /// <summary>Nom local de l'entrée <c>settings</c>.</summary>
+    public const string OptionsLocalName = "settings.json";
 
     private readonly TimeProvider _time = timeProvider ?? TimeProvider.System;
 
@@ -295,12 +298,15 @@ public sealed class WorkItemRunnerService(
             try
             {
                 var bytes = await oss.DownloadObjectAsync(record.BucketKey, output.ObjectKey, cancellationToken).ConfigureAwait(false);
-                await File.WriteAllBytesAsync(Path.Combine(directory, output.LocalName), bytes, cancellationToken).ConfigureAwait(false);
-                present[output.LocalName] = true;
-                progress($"Sortie {output.Parameter} récupérée : {output.LocalName} ({Size(bytes.Length)}).");
+                var localName = output.Parameter == ResultParameter ? "output.zip" : output.LocalName;
+                await File.WriteAllBytesAsync(Path.Combine(directory, localName), bytes, cancellationToken).ConfigureAwait(false);
+                present[localName] = true;
+                progress($"Sortie {output.Parameter} récupérée : {localName} ({Size(bytes.Length)}).");
                 if (output.Parameter == ResultParameter)
                 {
-                    result = results.Read(Encoding.UTF8.GetString(bytes));
+                    var json = ExtractOutput(bytes, directory);
+                    present[ResultLocalName] = json is not null;
+                    result = json is null ? null : results.Read(json);
                 }
             }
             catch (ApsException exception)
@@ -337,6 +343,53 @@ public sealed class WorkItemRunnerService(
             File.Exists(reportPath) ? File.ReadAllText(reportPath) : null);
     }
 
+    /// <summary>Extrait systems-inventory.json et run.log du ZIP de sortie (entrées à plat uniquement, 256 Mo max).</summary>
+    private static string? ExtractOutput(byte[] zip, string directory)
+    {
+        string? json = null;
+        try
+        {
+            using var archive = new System.IO.Compression.ZipArchive(new MemoryStream(zip), System.IO.Compression.ZipArchiveMode.Read);
+            foreach (var name in new[] { ResultLocalName, RunLogName })
+            {
+                var entry = archive.GetEntry(name);
+                if (entry is null || entry.Length > 256L * 1024 * 1024)
+                {
+                    continue;
+                }
+
+                using var reader = new StreamReader(entry.Open(), Encoding.UTF8);
+                var text = reader.ReadToEnd();
+                File.WriteAllText(Path.Combine(directory, name), text, new UTF8Encoding(false));
+                if (name == ResultLocalName)
+                {
+                    json = text;
+                }
+            }
+        }
+        catch (InvalidDataException)
+        {
+            return null;
+        }
+
+        return json;
+    }
+
+    /// <summary>ZIP d'entrée : la maquette seule, à la racine (pas de liens ; settings.json sans mainModelPath).</summary>
+    private static MemoryStream ModelZip(string modelPath)
+    {
+        var stream = new MemoryStream();
+        using (var archive = new System.IO.Compression.ZipArchive(stream, System.IO.Compression.ZipArchiveMode.Create, leaveOpen: true))
+        {
+            using var target = archive.CreateEntry(Path.GetFileName(modelPath), System.IO.Compression.CompressionLevel.Fastest).Open();
+            using var source = File.OpenRead(modelPath);
+            source.CopyTo(target);
+        }
+
+        stream.Position = 0;
+        return stream;
+    }
+
     private static string ObjectKey(string runId, ActivityParameter parameter) =>
         $"{runId}/{(parameter.Zip ? parameter.Name + ".zip" : parameter.LocalName ?? parameter.Name)}";
 
@@ -345,14 +398,14 @@ public sealed class WorkItemRunnerService(
         parameter.LocalName == ModelLocalName || (parameter.LocalName == OptionsLocalName && !string.IsNullOrWhiteSpace(request.OptionsJson));
 
     private static Stream InputFor(ActivityParameter parameter, RunRequest request) =>
-        parameter.LocalName == ModelLocalName ? File.OpenRead(request.ModelPath)
+        parameter.LocalName == ModelLocalName ? ModelZip(request.ModelPath)
         : parameter.LocalName == OptionsLocalName ? new MemoryStream(new UTF8Encoding(false).GetBytes(request.OptionsJson))
         : throw new InvalidOperationException($"Paramètre d'entrée non pris en charge : {parameter.Name} ({parameter.LocalName}).");
 
     private static (string Name, long Bytes) DescribeInput(ActivityParameter parameter, RunRequest request) =>
         parameter.LocalName == ModelLocalName
             ? (Path.GetFileName(request.ModelPath), new FileInfo(request.ModelPath).Length)
-            : ("options.json (éditeur)", Encoding.UTF8.GetByteCount(request.OptionsJson));
+            : ("settings.json (éditeur)", Encoding.UTF8.GetByteCount(request.OptionsJson));
 
     private static string Size(long bytes) =>
         bytes >= 1024 * 1024 ? $"{(bytes / 1024.0 / 1024.0).ToString("0.0", CultureInfo.InvariantCulture)} Mo" : $"{(bytes / 1024.0).ToString("0.0", CultureInfo.InvariantCulture)} Ko";

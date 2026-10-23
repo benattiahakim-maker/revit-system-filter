@@ -27,3 +27,6 @@ jobs:
 
       - name: Build (Release - Revit 2026 + 2027)
         run: dotnet build Egis.Revit.SystemFilter.sln --configuration Release --no-restore
+
+      - name: Tests (logique ZIP / settings / liens, sans Revit)
+        run: dotnet test src/Egis.Revit.SystemFilter.DesignAutomation.Io.Tests --configuration Release

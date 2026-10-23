@@ -11,7 +11,7 @@ public sealed record CheckResult(IReadOnlyList<string> Errors, IReadOnlyList<str
 
 /// <summary>
 /// Contrôles locaux avant soumission : ils évitent de payer un WorkItem voué à l'échec. L'entrée est une maquette
-/// Revit (<c>.rvt</c>) et, optionnellement, un <c>options.json</c>.
+/// Revit (<c>.rvt</c>) et, optionnellement, un <c>settings.json</c>.
 /// </summary>
 public static class InputChecks
 {
@@ -46,7 +46,7 @@ public static class InputChecks
     }
 
     /// <summary>
-    /// <c>options.json</c> est facultatif : vide = valide (tous les réseaux). Non vide, il doit être un objet JSON.
+    /// <c>settings.json</c> est facultatif : vide = valide (tous les réseaux). Non vide, il doit être un objet JSON.
     /// </summary>
     public static CheckResult CheckOptions(string optionsJson)
     {
@@ -57,7 +57,7 @@ public static class InputChecks
 
         if (Encoding.UTF8.GetByteCount(optionsJson) > 1024 * 1024)
         {
-            return new CheckResult(["options.json dépasse 1 Mo."], []);
+            return new CheckResult(["settings.json dépasse 1 Mo."], []);
         }
 
         try
@@ -65,12 +65,12 @@ public static class InputChecks
             using var document = JsonDocument.Parse(optionsJson);
             if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
-                return new CheckResult(["options.json : objet JSON attendu."], []);
+                return new CheckResult(["settings.json : objet JSON attendu."], []);
             }
         }
         catch (JsonException exception)
         {
-            return new CheckResult([$"options.json illisible : {exception.Message}"], []);
+            return new CheckResult([$"settings.json illisible : {exception.Message}"], []);
         }
 
         return new CheckResult([], []);
