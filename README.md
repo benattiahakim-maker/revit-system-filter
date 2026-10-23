@@ -79,7 +79,11 @@ ouvre lui-même le modèle principal après avoir redirigé ses liens vers le do
 `systems-inventory.json` : `elements[].parentIds` contient **tous** les systèmes de l'élément
 (sans doublon, dans l'ordre de première rencontre), pas seulement le premier.
 `systems[].baseEquipmentId` (toujours présent) : clé de l'équipement de départ du système
-(`BaseEquipment` de `MechanicalSystem` / `PipingSystem`, ex. une CTA), ou `null` s'il n'y en a pas.
+(`BaseEquipment` de `MechanicalSystem` / `PipingSystem`, ex. une CTA).
+Repli si `BaseEquipment` est vide : l'équipement de catégorie `MechanicalEquipment` raccordé au réseau
+(éléments du système et voisins via les connecteurs) ; s'il y en a plusieurs, celui raccordé au plus grand
+nombre de systèmes MEP distincts, puis le plus petit id. Chaque repli écrit une ligne `WARN` dans `run.log`
+(synthèse au-delà de 20). Sans aucun candidat, la valeur reste `null`.
 Si cet équipement est absent de `elements[]` (catégorie non couverte, filtré, ou situé dans un lien),
 la valeur est `null` et une ligne `WARN` est écrite dans `run.log` (au-delà de 20 systèmes concernés :
 une seule ligne de synthèse avec le nombre et 5 exemples).

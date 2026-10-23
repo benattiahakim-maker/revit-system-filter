@@ -28,7 +28,7 @@ modèle .rvt ──► SystemInventoryService.BuildInventory(doc) ──► syst
 Trois collections à plat reliées par clés (chaque **enfant référence son parent**) :
 
 - `systemTypes[]` — `{ id, name, domain, classification }`
-- `systems[]` — `{ id, uniqueId, name, systemTypeId, baseEquipmentId }` → parent type ; `baseEquipmentId` (toujours présent) = clé dans `elements[]` de l'équipement de départ (`BaseEquipment`, ex. CTA), ou `null` s'il n'y en a pas ou s'il est absent de `elements[]` (alors `WARN` dans `run.log`)
+- `systems[]` — `{ id, uniqueId, name, systemTypeId, baseEquipmentId }` → parent type ; `baseEquipmentId` (toujours présent) = clé dans `elements[]` de l'équipement de départ (`BaseEquipment`, ex. CTA ; à défaut, repli sur l'équipement mécanique du réseau raccordé au plus de systèmes, puis plus petit id, avec `WARN` dans `run.log`), ou `null` s'il n'y en a pas ou s'il est absent de `elements[]` (alors `WARN` dans `run.log`)
 - `elements[]` — `{ id, uniqueId, category, domain, family, type, name, level, size, lengthMm, [materiel, numCta], parentIds }` → `parentIds` liste les clés des parents (aujourd'hui le ou les systèmes ; en V2 s'y ajouteront les espaces — voir [cahier des charges](CAHIER-DES-CHARGES.md))
 
 ```jsonc
