@@ -32,8 +32,9 @@
     Projet bibliothèque : NuGet ne copie pas ses DLL en sortie. On copie donc
     explicitement DesignAutomationBridge.dll (seule DLL du package à embarquer)
     depuis le package restauré, chemin résolu par GeneratePathProperty.
+    Seulement dans les builds par cible (pas dans le build "externe" multi-cible).
   -->
-  <Target Name="CopyDesignAutomationBridge" AfterTargets="Build">
+  <Target Name="CopyDesignAutomationBridge" AfterTargets="Build" Condition="'$(TargetFramework)' != ''">
     <ItemGroup>
       <_DaBridge Include="$(PkgAutodesk_Forge_DesignAutomation_Revit)/lib/*/DesignAutomationBridge.dll" />
     </ItemGroup>
