@@ -39,7 +39,7 @@ jobs:
 
       - name: Packaging AppBundles DA (R2026 + R2027, aucune publication APS)
         shell: pwsh
-        run: ./build/package-da.ps1 -NoBuild
+        run: ./build/package-da.ps1
 
       - name: Upload des bundles DA
         uses: actions/upload-artifact@v4
