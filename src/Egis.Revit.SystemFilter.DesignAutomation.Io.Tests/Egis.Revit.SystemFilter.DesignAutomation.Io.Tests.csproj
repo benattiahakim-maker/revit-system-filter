@@ -21,7 +21,6 @@
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\ParentIdMerge.cs" Link="Core\ParentIdMerge.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\BaseEquipmentCheck.cs" Link="Core\BaseEquipmentCheck.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\BaseEquipmentFallback.cs" Link="Core\BaseEquipmentFallback.cs" />
-    <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\ParameterValueChoice.cs" Link="Core\ParameterValueChoice.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\LevelChoice.cs" Link="Core\LevelChoice.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\RoomChoice.cs" Link="Core\RoomChoice.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\RoomRecord.cs" Link="Core\RoomRecord.cs" />

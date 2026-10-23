@@ -94,13 +94,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
             var warnings = BaseEquipmentFallback.Summarize(_fallbackLines);
             warnings.AddRange(BaseEquipmentCheck.Apply(inventory.Systems, inventory.Elements.Select(e => e.Id)));
             var equipments = inventory.Elements.Where(e => e.Category == "MechanicalEquipment").ToList();
-            var summary = ParameterValueChoice.Summarize(
-                equipments.Count,
-                equipments.Count(e => e.NumCta != null),
-                equipments.Count(e => e.Materiel != null),
-                equipments.Count(e => e.Mark != null),
-                _cvcOptions.EquipmentCtaParameterName,
-                _cvcOptions.MaterialNameParameterName);
+            var equipments = inventory.Elements.Where(e => e.Category == "MechanicalEquipment").ToList();
             var bySystem = new Dictionary<long, List<string?>>();
             foreach (var e in inventory.Elements)
             {
@@ -118,11 +112,9 @@ namespace Egis.Revit.SystemFilter.Core.Services
 
             Infos = new List<string>
             {
-                summary.Info,
                 RoomChoice.Summary(equipments),
                 LevelChoice.Summary(inventory.Elements.Count, _missingLevelBefore, inventory.Elements.Count(e => e.Level == null)),
             };
-            warnings.AddRange(summary.Warnings);
             Warnings = warnings;
 
             inventory.Summary = new InventorySummary
@@ -327,7 +319,6 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 Family = elementType?.FamilyName,
                 Type = elementType?.Name,
                 Name = element.Name,
-                Mark = GetMark(element),
                 Level = GetLevelName(document, element, ref _missingLevelBefore, _levels),
                 Size = GetSize(element),
                 LengthMm = GetLengthMm(element),
@@ -337,31 +328,12 @@ namespace Egis.Revit.SystemFilter.Core.Services
 
             if (builtInCategory == BuiltInCategory.OST_MechanicalEquipment)
             {
-                record.Materiel = ReadInstanceOrType(element, elementType, _cvcOptions.MaterialNameParameterName);
-                record.NumCta = ReadInstanceOrType(element, elementType, _cvcOptions.EquipmentCtaParameterName);
+                record.Materiel = element.LookupParameter(_cvcOptions.MaterialNameParameterName)?.AsString();
+                record.NumCta = element.LookupParameter(_cvcOptions.EquipmentCtaParameterName)?.AsString();
             }
 
             knownElementIds[element.Id.Value] = record;
             inventory.Elements.Add(record);
-        }
-
-        private static string? GetMark(Element element) =>
-            ParameterValueChoice.Normalize(Read(element.get_Parameter(BuiltInParameter.ALL_MODEL_MARK)));
-
-        /// <summary>Paramètre par nom (partagé ou projet) sur l'instance puis sur le type ; choix dans <see cref="ParameterValueChoice"/>.</summary>
-        private static string? ReadInstanceOrType(Element element, Element? elementType, string parameterName) =>
-            ParameterValueChoice.Choose(
-                Read(element.LookupParameter(parameterName)),
-                elementType is null ? ParameterReading.Missing : Read(elementType.LookupParameter(parameterName)));
-
-        private static ParameterReading Read(Parameter? parameter)
-        {
-            if (parameter is null || !parameter.HasValue) return ParameterReading.Missing;
-            string? text = parameter.StorageType == StorageType.String ? parameter.AsString() : null;
-            string? valueString;
-            try { valueString = parameter.AsValueString(); }
-            catch (Autodesk.Revit.Exceptions.ApplicationException) { valueString = null; }
-            return new ParameterReading(true, text, valueString);
         }
 
         private static readonly BuiltInParameter[] LevelParameters =

@@ -132,12 +132,6 @@ public sealed class InventoryReader
             detail += $"  ·  CTA {numCta}";
         }
 
-        var mark = element["mark"]?.GetValue<string>();
-        if (!string.IsNullOrWhiteSpace(mark))
-        {
-            detail = string.IsNullOrEmpty(detail) ? $"Repère {mark}" : $"{detail}  ·  Repère {mark}";
-        }
-
         var name = element["name"]?.GetValue<string>();
         var category = Text(element["category"]);
         return new TableRow(
