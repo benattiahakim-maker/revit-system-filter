@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Mechanical;
+using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.Plumbing;
 using Egis.Revit.SystemFilter.Core.Abstractions;
 using Egis.Revit.SystemFilter.Core.Configuration;
@@ -118,6 +119,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
             Infos = new List<string>
             {
                 summary.Info,
+                RoomChoice.Summary(equipments),
                 LevelChoice.Summary(inventory.Elements.Count, _missingLevelBefore, inventory.Elements.Count(e => e.Level == null)),
             };
             warnings.AddRange(summary.Warnings);
@@ -331,6 +333,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 LengthMm = GetLengthMm(element),
                 ParentIds = new List<long> { systemId },
             };
+            record.Room = GetRoom(document, element);
 
             if (builtInCategory == BuiltInCategory.OST_MechanicalEquipment)
             {
@@ -415,6 +418,47 @@ namespace Egis.Revit.SystemFilter.Core.Services
             if (element.Location is LocationCurve lc) return Math.Min(lc.Curve.GetEndPoint(0).Z, lc.Curve.GetEndPoint(1).Z);
             var box = element.get_BoundingBox(null);
             return box is null ? (double?)null : (box.Min.Z + box.Max.Z) / 2;
+        }
+
+        /// <summary>Espace MEP, puis pièce de la maquette, puis pièce d'un lien chargé ; choix dans <see cref="RoomChoice"/>.</summary>
+        private static RoomRecord? GetRoom(Document document, Element element)
+        {
+            var fi = element as FamilyInstance;
+            var point = InsertionPoint(element);
+
+            SpatialElement? space = Safe(() => fi?.Space) ?? (point is null ? null : Safe(() => document.GetSpaceAtPoint(point)));
+            if (space != null) return RoomChoice.Choose(ToRecord(space), null, null);
+
+            SpatialElement? room = Safe(() => fi?.Room) ?? (point is null ? null : Safe(() => document.GetRoomAtPoint(point)));
+            if (room != null) return RoomChoice.Choose(null, ToRecord(room), null);
+
+            if (point is null) return null;
+            foreach (var link in new FilteredElementCollector(document).OfClass(typeof(RevitLinkInstance)).Cast<RevitLinkInstance>())
+            {
+                var linkDoc = Safe(() => link.GetLinkDocument());
+                if (linkDoc is null) continue;
+                var local = link.GetTotalTransform().Inverse.OfPoint(point);
+                var linked = Safe(() => linkDoc.GetRoomAtPoint(local));
+                if (linked != null) return RoomChoice.Choose(null, null, ToRecord(linked));
+            }
+            return null;
+        }
+
+        private static RoomRecord ToRecord(SpatialElement s) =>
+            new RoomRecord { Id = s.Id.Value, Number = s.Number, Name = s.Name };
+
+        private static XYZ? InsertionPoint(Element element)
+        {
+            if (element.Location is LocationPoint lp) return lp.Point;
+            var box = element.get_BoundingBox(null);
+            return box is null ? null : (box.Min + box.Max) / 2;
+        }
+
+        private static T? Safe<T>(Func<T?> read) where T : class
+        {
+            try { return read(); }
+            catch (Autodesk.Revit.Exceptions.ApplicationException) { return null; }
+            catch (InvalidOperationException) { return null; }
         }
 
         private static string? GetSize(Element element)
