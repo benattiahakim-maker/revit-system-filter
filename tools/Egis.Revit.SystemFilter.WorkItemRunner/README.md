@@ -26,7 +26,7 @@ Desktop. Aucun Revit n'est nécessaire. L'Activity visée doit déjà être publ
 $env:APS_CLIENT_ID     = "<client id>"
 $env:APS_CLIENT_SECRET = "<client secret>"      # ou, à défaut : $env:APS_TOKEN = "<jeton 2-legged code:all data:read data:write data:create bucket:create bucket:read>"
 $env:APS_NICKNAME      = "<nickname>"
-$env:APS_BUCKET        = "egsf-workitems-<suffixe>" # recommandé ; [-_.a-z0-9], 3 à 128 caractères, unique chez APS
+$env:APS_BUCKET_KEY    = "egsf-workitems-<suffixe>" # recommandé ; [-_.a-z0-9], 3 à 128 caractères, unique chez APS
 # Facultatif
 $env:APS_DA_BASE_URL   = "https://developer.api.autodesk.com/da/us-east/v3"
 $env:EGSF_REPO_ROOT     = "C:\src\EG_ROOM_TRACKER" # sinon recherché à partir du dossier de l'exécutable
@@ -64,7 +64,7 @@ sur « Confirmer ». Le plan et la décision sont aussi inscrits au journal.
 ### Bucket OSS
 
 Les clés de bucket sont **globales** chez APS (toutes applications et régions confondues) et doivent respecter
-`[-_.a-z0-9]{3,128}` (POST `/oss/v2/buckets`). **Définir `APS_BUCKET` est recommandé.** À défaut, la clé est dérivée
+`[-_.a-z0-9]{3,128}` (POST `/oss/v2/buckets`). **Définir `APS_BUCKET_KEY` est recommandé.** L'ancien nom `APS_BUCKET` reste accepté en repli, avec un avertissement de dépréciation affiché une fois dans le journal au démarrage ; si les deux sont définis avec des valeurs différentes, `APS_BUCKET_KEY` l'emporte et un avertissement est affiché. À défaut, la clé est dérivée
 de façon déterministe de l'ID client : `egsf-workitems-` suivi des 20 premiers caractères hexadécimaux du SHA-256 de
 `APS_CLIENT_ID` (l'ID lui-même n'apparaît pas). Le même poste, ou un autre avec la même application APS, retrouve donc
 le même bucket. Sans ID client (`APS_TOKEN` seul), elle dérive du nickname (`egsf-workitems-<nickname>`). Une clé
@@ -136,5 +136,5 @@ exemples. Les tests couvrent les cas suivants :
 - alias absent ou ZIP refusé, arrêt avant le plan ;
 - « Récupérer » après redémarrage (résultat et rapport), WorkItem encore en cours, récupération répétée, échec sans
   sortie, lancement ancien sans clés ;
-- bucket par défaut dérivé de l'ID client (déterministe, règle OSS), `APS_BUCKET` prioritaire, bucket invalide refusé ;
+- bucket par défaut dérivé de l'ID client (déterministe, règle OSS), `APS_BUCKET_KEY` prioritaire (repli déprécié sur `APS_BUCKET`), bucket invalide refusé ;
 - aucune URL signée ni aucun jeton dans le journal, le plan ou l'historique (fichiers sur disque vérifiés).

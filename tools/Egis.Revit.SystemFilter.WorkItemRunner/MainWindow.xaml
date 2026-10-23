@@ -63,7 +63,7 @@
               </Grid>
               <TextBlock Text="Nickname APS (APS_NICKNAME)" Style="{StaticResource Hint}" Margin="0,6,0,0" />
               <TextBox Text="{Binding Nickname, UpdateSourceTrigger=PropertyChanged}" />
-              <TextBlock Text="Bucket OSS (APS_BUCKET, transient 24 h)" Style="{StaticResource Hint}" Margin="0,6,0,0" />
+              <TextBlock Text="Bucket OSS (APS_BUCKET_KEY, transient 24 h)" Style="{StaticResource Hint}" Margin="0,6,0,0" />
               <TextBox Text="{Binding BucketKey, UpdateSourceTrigger=PropertyChanged}" />
               <TextBlock Text="Racine du dépôt (définitions)" Style="{StaticResource Hint}" Margin="0,6,0,0" />
               <TextBox Text="{Binding RepositoryRoot, UpdateSourceTrigger=LostFocus}" />

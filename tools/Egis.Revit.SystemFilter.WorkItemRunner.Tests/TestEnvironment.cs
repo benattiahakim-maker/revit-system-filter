@@ -37,7 +37,7 @@ internal sealed class TestEnvironment : IDisposable
     private readonly TempDirectory _temp = new();
     private readonly RunnerOptions _options;
 
-    public TestEnvironment(bool withCredentials = true)
+    public TestEnvironment(bool withCredentials = true, IReadOnlyList<string>? warnings = null)
     {
         var dataRepo = Path.Combine(AppContext.BaseDirectory, "Data", "repo");
         foreach (var file in Directory.EnumerateFiles(dataRepo, "*", SearchOption.AllDirectories))
@@ -59,6 +59,7 @@ internal sealed class TestEnvironment : IDisposable
             RepositoryRoot = Root,
             BucketKey = Bucket,
             DataDirectory = DataDirectory,
+            Warnings = warnings ?? [],
         };
         ViewModel = new MainViewModel(_options, new HttpClient(Server), Confirmation, Files)
         {
