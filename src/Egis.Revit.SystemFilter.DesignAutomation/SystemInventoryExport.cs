@@ -21,11 +21,12 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
-        public byte[] Serialize(Document document, SystemInventoryOptions options, Action<string>? warn = null)
+        public byte[] Serialize(Document document, SystemInventoryOptions options, Action<string>? warn = null, Action<string>? info = null)
         {
             if (document is null) throw new ArgumentNullException(nameof(document));
             var service = new SystemInventoryService(options);
             var inventory = service.BuildInventory(document);
+            foreach (var line in service.Infos) info?.Invoke(line);
             foreach (var warning in service.Warnings) warn?.Invoke(warning);
             return JsonSerializer.SerializeToUtf8Bytes(inventory, JsonOptions);
         }

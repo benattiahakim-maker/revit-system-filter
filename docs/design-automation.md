@@ -30,6 +30,7 @@ Trois collections à plat reliées par clés (chaque **enfant référence son pa
 - `systemTypes[]` — `{ id, name, domain, classification }`
 - `systems[]` — `{ id, uniqueId, name, systemTypeId, baseEquipmentId }` → parent type ; `baseEquipmentId` (toujours présent) = clé dans `elements[]` de l'équipement de départ (`BaseEquipment`, ex. CTA ; à défaut, repli sur l'équipement mécanique du réseau raccordé au plus de systèmes, puis plus petit id, avec `WARN` dans `run.log`), ou `null` s'il n'y en a pas ou s'il est absent de `elements[]` (alors `WARN` dans `run.log`)
 - `elements[]` — `{ id, uniqueId, category, domain, family, type, name, mark, level, size, lengthMm, [materiel, numCta], parentIds }` → `parentIds` liste les clés des parents (aujourd'hui le ou les systèmes ; en V2 s'y ajouteront les espaces — voir [cahier des charges](CAHIER-DES-CHARGES.md))
+  - `mark` = repère d'instance (Mark, `ALL_MODEL_MARK`) ; `materiel` / `numCta` (équipements mécaniques) = paramètres « NOM MATERIEL » / « EG-CVC_Num CTA » (partagés ou projet), lus sur l'instance puis sur le type, texte puis valeur affichée pour un paramètre non texte, espaces retirés. Champ omis si vide. `run.log` contient une ligne `INFO équipements mécaniques : N ; numCta rempli : … ; materiel rempli : … ; mark rempli : …`, et un `WARN paramètre « … » absent ou vide …` si aucun équipement n'a la valeur.
 
 ```jsonc
 {
