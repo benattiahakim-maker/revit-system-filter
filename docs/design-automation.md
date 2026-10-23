@@ -77,26 +77,39 @@ restreindre la portée — voir
 ## Bundle AppBundle
 
 Point d'entrée headless : `SystemFilterDbApplication` (`IExternalDBApplication`),
-branché sur `DesignAutomationBridge.DesignAutomationReadyEvent`. Le bridge est
-fourni par le moteur à l'exécution (référence compile-only, non embarquée).
+branché sur `DesignAutomationBridge.DesignAutomationReadyEvent`. `DesignAutomationBridge.dll`
+est **embarqué** dans le bundle : la compilation le copie en sortie depuis le package
+NuGet `Autodesk.Forge.DesignAutomation.Revit` restauré (2026.0.0 pour R2026, 2027.0.0 pour R2027).
+
+Un ZIP par version de Revit :
 
 ```
-EgisSystemFilter.bundle/
-├── PackageContents.xml                 (R2026 + R2027)
-└── Contents/
-    ├── 2026/   DLL + .addin (net8)
-    └── 2027/   DLL + .addin (net10)
+EgisSystemFilter_R<année>.zip
+└── EgisSystemFilter.bundle/
+    ├── PackageContents.xml              (SeriesMin/Max = R<année>)
+    └── Contents/
+        ├── EgisSystemFilter.addin
+        ├── Egis.Revit.SystemFilter.DesignAutomation.dll (+ .pdb)
+        ├── Egis.Revit.SystemFilter.Core.dll (+ .pdb)
+        ├── Egis.Revit.SystemFilter.DesignAutomation.Io.dll (+ .pdb)
+        └── DesignAutomationBridge.dll
 ```
 
 ### Fabriquer le bundle
 
 ```powershell
-pwsh ./build/package-da.ps1
-# avec le SDK .NET 10 en scope utilisateur :
+pwsh ./build/package-da.ps1                      # R2026 et R2027
+pwsh ./build/package-da.ps1 -Revit 2027 -NoPdb   # une seule version, sans .pdb
+# avec un SDK .NET 10 en scope utilisateur :
 pwsh ./build/package-da.ps1 -DotNet "$env:USERPROFILE\.dotnet10\dotnet.exe"
 ```
 
-Produit `artifacts/EgisSystemFilter.bundle/` et son `.zip`.
+Le script compile `Egis.Revit.SystemFilter.DesignAutomation` en Release (net8 → R2026,
+net10 → R2027), assemble le bundle à partir de `bundle/PackageContents.template.xml` et
+`bundle/EgisSystemFilter.addin`, produit `artifacts/EgisSystemFilter_R2026.zip` et
+`artifacts/EgisSystemFilter_R2027.zip`, puis vérifie le contenu de chaque ZIP : il échoue
+si un fichier attendu manque. Il ne fait aucun appel APS et ne publie rien.
+Il tourne sous Windows et sous Linux (PowerShell 7).
 
 ## Côté APS (compte Autodesk)
 

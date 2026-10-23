@@ -22,10 +22,24 @@
     Version alignée sur la version Revit de chaque cible.
   -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
-    <PackageReference Include="Autodesk.Forge.DesignAutomation.Revit" Version="2026.0.0" />
+    <PackageReference Include="Autodesk.Forge.DesignAutomation.Revit" Version="2026.0.0" GeneratePathProperty="true" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
-    <PackageReference Include="Autodesk.Forge.DesignAutomation.Revit" Version="2027.0.0" />
+    <PackageReference Include="Autodesk.Forge.DesignAutomation.Revit" Version="2027.0.0" GeneratePathProperty="true" />
   </ItemGroup>
+
+  <!--
+    Projet bibliothèque : NuGet ne copie pas ses DLL en sortie. On copie donc
+    explicitement DesignAutomationBridge.dll (seule DLL du package à embarquer)
+    depuis le package restauré, chemin résolu par GeneratePathProperty.
+    Seulement dans les builds par cible (pas dans le build "externe" multi-cible).
+  -->
+  <Target Name="CopyDesignAutomationBridge" AfterTargets="Build" Condition="'$(TargetFramework)' != ''">
+    <ItemGroup>
+      <_DaBridge Include="$(PkgAutodesk_Forge_DesignAutomation_Revit)/lib/*/DesignAutomationBridge.dll" />
+    </ItemGroup>
+    <Error Condition="'@(_DaBridge)' == ''" Text="DesignAutomationBridge.dll introuvable dans le package Autodesk.Forge.DesignAutomation.Revit ($(PkgAutodesk_Forge_DesignAutomation_Revit))." />
+    <Copy SourceFiles="@(_DaBridge)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>
