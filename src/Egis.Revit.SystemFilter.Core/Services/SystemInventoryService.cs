@@ -44,7 +44,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
         /// <summary>Avertissements du dernier <see cref="BuildInventory"/> (sans chemin), à écrire dans run.log.</summary>
         public IReadOnlyList<string> Warnings { get; private set; } = new List<string>();
 
-        /// <summary>Lignes d'information du dernier <see cref="BuildInventory"/> (synthèse numCta / materiel / mark), pour run.log.</summary>
+        /// <summary>Lignes d'information du dernier <see cref="BuildInventory"/> (synthèses pièces et niveaux), pour run.log.</summary>
         public IReadOnlyList<string> Infos { get; private set; } = new List<string>();
 
         public SystemInventoryService(
