@@ -37,6 +37,9 @@ namespace Egis.Revit.SystemFilter.Core.Services
         private readonly SystemInventoryOptions _options;
         private readonly CvcFilterOptions _cvcOptions;
 
+        /// <summary>Avertissements du dernier <see cref="BuildInventory"/> (sans chemin), à écrire dans run.log.</summary>
+        public IReadOnlyList<string> Warnings { get; private set; } = new List<string>();
+
         public SystemInventoryService(
             SystemInventoryOptions? options = null,
             CvcFilterOptions? cvcOptions = null)
@@ -75,6 +78,9 @@ namespace Egis.Revit.SystemFilter.Core.Services
             {
                 CollectPipingSystems(document, inventory, knownTypeIds, knownElementIds);
             }
+
+            // Après la collecte de TOUS les éléments : baseEquipmentId doit désigner un élément exporté.
+            Warnings = BaseEquipmentCheck.Apply(inventory.Systems, inventory.Elements.Select(e => e.Id));
 
             inventory.Summary = new InventorySummary
             {
@@ -149,8 +155,13 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 UniqueId = system.UniqueId,
                 Name = system.Name,
                 SystemTypeId = typeId.Value,
+                BaseEquipmentId = BaseEquipmentOf(system),
             });
         }
+
+        private static long? BaseEquipmentOf(MEPSystem system) =>
+            (system as MechanicalSystem)?.BaseEquipment?.Id.Value
+            ?? (system as PipingSystem)?.BaseEquipment?.Id.Value;
 
         private void AddElement(
             Document document, SystemInventory inventory, Dictionary<long, NetworkElementRecord?> knownElementIds,

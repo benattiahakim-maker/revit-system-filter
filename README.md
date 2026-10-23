@@ -78,6 +78,10 @@ ouvre lui-même le modèle principal après avoir redirigé ses liens vers le do
 
 `systems-inventory.json` : `elements[].parentIds` contient **tous** les systèmes de l'élément
 (sans doublon, dans l'ordre de première rencontre), pas seulement le premier.
+`systems[].baseEquipmentId` (toujours présent) : clé de l'équipement de départ du système
+(`BaseEquipment` de `MechanicalSystem` / `PipingSystem`, ex. une CTA), ou `null` s'il n'y en a pas.
+Si cet équipement est absent de `elements[]` (catégorie non couverte, filtré, ou situé dans un lien),
+la valeur est `null` et une ligne `WARN` est écrite dans `run.log`.
 
 `settings.json` (clés inconnues refusées, toutes facultatives) :
 
@@ -124,6 +128,8 @@ dotnet test src/Egis.Revit.SystemFilter.DesignAutomation.Io.Tests
 4. Test réel : un `.rvt` seul zippé, sans `settings.json` ; puis un ZIP avec liens + `mainModelPath` ;
    puis un ZIP où un lien manque (vérifier `run.log`) ; enfin un cas en échec (ex. `mainModelPath`
    absent du ZIP) pour vérifier que `result/run.log` est bien envoyé quand `Succeeded` vaut `false`.
+   Vérifier aussi qu'une CTA est bien repérée comme équipement de départ (`systems[].baseEquipmentId`
+   = id de la CTA, présente dans `elements[]` en `MechanicalEquipment`).
 5. Seulement ensuite, régler l'alias de l'Activity systèmes dans l'admin du backend.
    Les WorkItems déjà lancés sur l'ancienne version ne sont pas concernés.
 

@@ -53,7 +53,7 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
                 document = app.OpenDocumentFile(modelPath, open);
                 ReportUnloadedLinks(document, ws.Log);
 
-                var json = new SystemInventoryExport().Serialize(document, ws.Settings.ToInventoryOptions());
+                var json = new SystemInventoryExport().Serialize(document, ws.Settings.ToInventoryOptions(), ws.Log.Warn);
                 ws.WriteInventory(json);
                 ws.Log.Info($"{ws.Settings.OutputFileName} écrit");
                 ws.Log.Info($"terminé : {ws.Log.Warnings} avertissement(s)");
