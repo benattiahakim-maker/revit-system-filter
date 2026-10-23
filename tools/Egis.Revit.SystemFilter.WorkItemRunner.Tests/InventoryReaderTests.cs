@@ -25,6 +25,13 @@ public sealed class InventoryReaderTests
         Assert.Equal("Système", system.Cells[1]);
         Assert.Equal(2, system.Children.Count);
         Assert.Contains(system.Children, e => e.Cells[1] == "MechanicalEquipment");
+
+        // Le repère d'instance (mark) apparaît dans le détail, le nom reste inchangé.
+        var equipment = system.Children.Single(e => e.Cells[1] == "MechanicalEquipment");
+        Assert.Equal("CTA-1", equipment.Cells[0]);
+        Assert.Contains("Repère M-12", equipment.Cells[3]);
+        var fitting = system.Children.Single(e => e.Cells[1] == "DuctFitting");
+        Assert.DoesNotContain("Repère", fitting.Cells[3]);
     }
 
     [Fact]

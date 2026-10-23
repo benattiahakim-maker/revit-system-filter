@@ -32,6 +32,11 @@ namespace Egis.Revit.SystemFilter.Core.Models.Inventory
         [JsonPropertyName("name")]
         public string? Name { get; set; }
 
+        /// <summary>Repère d'instance Revit (Mark, ALL_MODEL_MARK) ; null si vide.
+        /// Note : « name » vaut element.Name, soit le nom du type pour une instance de famille.</summary>
+        [JsonPropertyName("mark")]
+        public string? Mark { get; set; }
+
         [JsonPropertyName("level")]
         public string? Level { get; set; }
 

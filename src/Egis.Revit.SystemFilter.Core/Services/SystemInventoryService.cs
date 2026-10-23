@@ -288,6 +288,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 Family = elementType?.FamilyName,
                 Type = elementType?.Name,
                 Name = element.Name,
+                Mark = GetMark(element),
                 Level = GetLevelName(document, element),
                 Size = GetSize(element),
                 LengthMm = GetLengthMm(element),
@@ -302,6 +303,12 @@ namespace Egis.Revit.SystemFilter.Core.Services
 
             knownElementIds[element.Id.Value] = record;
             inventory.Elements.Add(record);
+        }
+
+        private static string? GetMark(Element element)
+        {
+            var mark = element.get_Parameter(BuiltInParameter.ALL_MODEL_MARK)?.AsString();
+            return string.IsNullOrWhiteSpace(mark) ? null : mark!.Trim();
         }
 
         private static string? GetLevelName(Document document, Element element)
