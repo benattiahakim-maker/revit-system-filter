@@ -17,6 +17,8 @@
     <ProjectReference Include="..\Egis.Revit.SystemFilter.DesignAutomation.Io\Egis.Revit.SystemFilter.DesignAutomation.Io.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Logique de fusion de parentIds (Core, sans API Revit) compilée ici pour être testée sous Linux. -->
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\ParentIdMerge.cs" Link="Core\ParentIdMerge.cs" />
     <None Include="..\Packaging\definitions\**\activity.json" LinkBase="Data\definitions" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

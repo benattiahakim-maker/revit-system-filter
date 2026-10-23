@@ -47,7 +47,7 @@ Trois collections à plat reliées par clés (chaque **enfant référence son pa
 }
 ```
 
-Les champs nuls sont omis. `domain` vaut `Duct` ou `Pipe`. `parentIds` ne porte que
+Les champs nuls sont omis. `domain` vaut `Duct` ou `Pipe`. `parentIds` contient tous les systèmes de l'élément (sans doublon, ordre de première rencontre) et ne porte que
 des clés (le nom du parent vit une seule fois dans sa collection) ; une clé se résout
 dans `systems` (parent système) ou, en V2, dans `spaces` (parent espace). Catégories couvertes :
 

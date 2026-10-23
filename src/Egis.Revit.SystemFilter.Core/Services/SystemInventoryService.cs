@@ -63,7 +63,8 @@ namespace Egis.Revit.SystemFilter.Core.Services
             };
 
             var knownTypeIds = new HashSet<long>();
-            var knownElementIds = new HashSet<long>();
+            // id -> record (null : élément vu mais de catégorie non couverte).
+            var knownElementIds = new Dictionary<long, NetworkElementRecord?>();
 
             if (_options.IncludeDuctSystems)
             {
@@ -87,7 +88,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
 
         private void CollectDuctSystems(
             Document document, SystemInventory inventory,
-            HashSet<long> knownTypeIds, HashSet<long> knownElementIds)
+            HashSet<long> knownTypeIds, Dictionary<long, NetworkElementRecord?> knownElementIds)
         {
             var systems = new FilteredElementCollector(document)
                 .OfClass(typeof(MechanicalSystem))
@@ -108,7 +109,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
 
         private void CollectPipingSystems(
             Document document, SystemInventory inventory,
-            HashSet<long> knownTypeIds, HashSet<long> knownElementIds)
+            HashSet<long> knownTypeIds, Dictionary<long, NetworkElementRecord?> knownElementIds)
         {
             var systems = new FilteredElementCollector(document)
                 .OfClass(typeof(PipingSystem))
@@ -152,18 +153,22 @@ namespace Egis.Revit.SystemFilter.Core.Services
         }
 
         private void AddElement(
-            Document document, SystemInventory inventory, HashSet<long> knownElementIds,
+            Document document, SystemInventory inventory, Dictionary<long, NetworkElementRecord?> knownElementIds,
             Element element, NetworkDomain domain, long systemId)
         {
-            if (element is null || !knownElementIds.Add(element.Id.Value))
+            if (element is null) return;
+
+            if (knownElementIds.TryGetValue(element.Id.Value, out var known))
             {
-                // Élément déjà rattaché à un système : premier système rencontré = parent.
+                // Élément déjà rencontré : parentIds contient TOUS ses systèmes (sans doublon).
+                if (known != null) ParentIdMerge.Add(known.ParentIds, systemId);
                 return;
             }
 
             var builtInCategory = element.Category?.BuiltInCategory ?? BuiltInCategory.INVALID;
             if (!CategoryKeys.TryGetValue(builtInCategory, out var categoryKey))
             {
+                knownElementIds[element.Id.Value] = null;
                 return;
             }
 
@@ -190,6 +195,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 record.NumCta = element.LookupParameter(_cvcOptions.EquipmentCtaParameterName)?.AsString();
             }
 
+            knownElementIds[element.Id.Value] = record;
             inventory.Elements.Add(record);
         }
 
