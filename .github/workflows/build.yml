@@ -36,3 +36,17 @@ jobs:
           dotnet test tools/Egis.Revit.SystemFilter.Aps.Tests --configuration Release
           dotnet test tools/Egis.Revit.SystemFilter.DaManager.Tests --configuration Release
           dotnet test tools/Egis.Revit.SystemFilter.WorkItemRunner.Tests --configuration Release
+
+      - name: Packaging AppBundles DA (R2026 + R2027, aucune publication APS)
+        shell: pwsh
+        run: ./build/package-da.ps1 -NoBuild
+
+      - name: Upload des bundles DA
+        uses: actions/upload-artifact@v4
+        with:
+          name: da-bundles-${{ github.sha }}
+          path: |
+            artifacts/EgisSystemFilter_R2026.zip
+            artifacts/EgisSystemFilter_R2027.zip
+          if-no-files-found: error
+          retention-days: 30
