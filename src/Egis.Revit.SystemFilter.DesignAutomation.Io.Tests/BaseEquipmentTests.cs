@@ -56,3 +56,46 @@ public class BaseEquipmentTests
         Assert.DoesNotContain(":\\", log.ToString());
     }
 }
+
+public class BaseEquipmentSummaryTests
+{
+    private static List<SystemRecord> Missing(int count) =>
+        Enumerable.Range(1, count).Select(i => new SystemRecord { Id = i, Name = $"S{i}", BaseEquipmentId = 10_000 + i }).ToList();
+
+    [Fact]
+    public void Jusqu_a_20_une_ligne_par_systeme()
+    {
+        var systems = Missing(20);
+        Assert.Equal(20, BaseEquipmentCheck.Apply(systems, Array.Empty<long>()).Count);
+        Assert.All(systems, s => Assert.Null(s.BaseEquipmentId));
+    }
+
+    [Fact]
+    public void Au_dela_de_20_une_seule_ligne_de_synthese_avec_5_exemples()
+    {
+        var systems = Missing(21);
+        var line = Assert.Single(BaseEquipmentCheck.Apply(systems, Array.Empty<long>()));
+        Assert.StartsWith("21 systèmes", line);
+        for (var i = 1; i <= 5; i++) Assert.Contains($"(S{i})", line);
+        Assert.DoesNotContain("(S6)", line);
+        Assert.All(systems, s => Assert.Null(s.BaseEquipmentId));
+
+        var log = new RunLog();
+        log.Warn(line);
+        Assert.Single(log.Lines);
+        Assert.Contains("10001", log.ToString());
+    }
+
+    [Fact]
+    public void Equipement_de_depart_ajoute_a_elements_garde_son_id()
+    {
+        // L'équipement de départ est ajouté à elements[] avant le contrôle : son id est conservé.
+        var systems = new List<SystemRecord> { new() { Id = 1, Name = "Soufflage", BaseEquipmentId = 9001 } };
+        var parents = new List<long> { 7 };
+        ParentIdMerge.Add(parents, 1);
+        ParentIdMerge.Add(parents, 1);
+        Assert.Empty(BaseEquipmentCheck.Apply(systems, new long[] { 9001 }));
+        Assert.Equal(9001L, systems[0].BaseEquipmentId);
+        Assert.Equal(new long[] { 7, 1 }, parents);
+    }
+}

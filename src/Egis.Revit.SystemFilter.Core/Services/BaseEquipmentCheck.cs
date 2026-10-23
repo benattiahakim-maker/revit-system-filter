@@ -11,7 +11,16 @@ namespace Egis.Revit.SystemFilter.Core.Services
     /// </summary>
     public static class BaseEquipmentCheck
     {
-        /// <summary>Retourne les avertissements (sans chemin), un par système corrigé.</summary>
+        /// <summary>Au-delà de ce nombre de systèmes corrigés, une seule ligne de synthèse.</summary>
+        public const int MaxDetailedWarnings = 20;
+
+        /// <summary>Nombre d'exemples cités dans la ligne de synthèse.</summary>
+        public const int SummaryExamples = 5;
+
+        /// <summary>
+        /// Retourne les avertissements (sans chemin) : un par système corrigé, ou une seule ligne
+        /// de synthèse (nombre + 5 exemples) au-delà de <see cref="MaxDetailedWarnings"/>.
+        /// </summary>
         public static List<string> Apply(IEnumerable<SystemRecord> systems, IEnumerable<long> elementIds)
         {
             var known = new HashSet<long>(elementIds);
@@ -23,6 +32,14 @@ namespace Egis.Revit.SystemFilter.Core.Services
                     warnings.Add($"équipement de départ {id} du système {system.Id} ({system.Name}) absent de elements[] : baseEquipmentId = null");
                     system.BaseEquipmentId = null;
                 }
+            }
+            if (warnings.Count > MaxDetailedWarnings)
+            {
+                var examples = string.Join(" ; ", warnings.Take(SummaryExamples));
+                return new List<string>
+                {
+                    $"{warnings.Count} systèmes avec un équipement de départ absent de elements[] (baseEquipmentId = null) ; exemples : {examples}",
+                };
             }
             return warnings;
         }

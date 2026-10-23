@@ -81,7 +81,10 @@ ouvre lui-même le modèle principal après avoir redirigé ses liens vers le do
 `systems[].baseEquipmentId` (toujours présent) : clé de l'équipement de départ du système
 (`BaseEquipment` de `MechanicalSystem` / `PipingSystem`, ex. une CTA), ou `null` s'il n'y en a pas.
 Si cet équipement est absent de `elements[]` (catégorie non couverte, filtré, ou situé dans un lien),
-la valeur est `null` et une ligne `WARN` est écrite dans `run.log`.
+la valeur est `null` et une ligne `WARN` est écrite dans `run.log` (au-delà de 20 systèmes concernés :
+une seule ligne de synthèse avec le nombre et 5 exemples).
+L'équipement de départ est lui-même ajouté à `elements[]` (s'il est d'une catégorie couverte, ex.
+`MechanicalEquipment`), avec le système dans ses `parentIds` (sans doublon), avant ce contrôle.
 
 `settings.json` (clés inconnues refusées, toutes facultatives) :
 
@@ -129,7 +132,9 @@ dotnet test src/Egis.Revit.SystemFilter.DesignAutomation.Io.Tests
    puis un ZIP où un lien manque (vérifier `run.log`) ; enfin un cas en échec (ex. `mainModelPath`
    absent du ZIP) pour vérifier que `result/run.log` est bien envoyé quand `Succeeded` vaut `false`.
    Vérifier aussi qu'une CTA est bien repérée comme équipement de départ (`systems[].baseEquipmentId`
-   = id de la CTA, présente dans `elements[]` en `MechanicalEquipment`).
+   = id de la CTA, présente dans `elements[]` en `MechanicalEquipment`). Avec une CTA branchée :
+   `baseEquipmentId` n'est pas `null` et l'élément correspondant est bien dans `elements[]`
+   (avec ce système dans ses `parentIds`).
 5. Seulement ensuite, régler l'alias de l'Activity systèmes dans l'admin du backend.
    Les WorkItems déjà lancés sur l'ancienne version ne sont pas concernés.
 
