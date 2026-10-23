@@ -30,3 +30,9 @@ jobs:
 
       - name: Tests (logique ZIP / settings / liens, sans Revit)
         run: dotnet test src/Egis.Revit.SystemFilter.DesignAutomation.Io.Tests --configuration Release
+
+      - name: Tests outils APS (Aps, DaManager, WorkItemRunner ; HTTP simulé, aucun appel APS)
+        run: |
+          dotnet test tools/Egis.Revit.SystemFilter.Aps.Tests --configuration Release
+          dotnet test tools/Egis.Revit.SystemFilter.DaManager.Tests --configuration Release
+          dotnet test tools/Egis.Revit.SystemFilter.WorkItemRunner.Tests --configuration Release
