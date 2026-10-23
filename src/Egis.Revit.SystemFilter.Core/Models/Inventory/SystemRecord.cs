@@ -26,5 +26,9 @@ namespace Egis.Revit.SystemFilter.Core.Models.Inventory
         [JsonPropertyName("baseEquipmentId")]
         [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public long? BaseEquipmentId { get; set; }
+
+        /// <summary>Noms des niveaux de ses éléments (terminaux et réseau), dédupliqués, triés par élévation.</summary>
+        [JsonPropertyName("levels")]
+        public System.Collections.Generic.List<string> Levels { get; set; } = new System.Collections.Generic.List<string>();
     }
 }

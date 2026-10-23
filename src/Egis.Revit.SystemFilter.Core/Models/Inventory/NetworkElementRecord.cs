@@ -32,6 +32,10 @@ namespace Egis.Revit.SystemFilter.Core.Models.Inventory
         [JsonPropertyName("name")]
         public string? Name { get; set; }
 
+        /// <summary>Espace MEP ou pièce de l'élément (space, puis room, puis linkedRoom) ; omis si rien trouvé.</summary>
+        [JsonPropertyName("room")]
+        public RoomRecord? Room { get; set; }
+
         [JsonPropertyName("level")]
         public string? Level { get; set; }
 

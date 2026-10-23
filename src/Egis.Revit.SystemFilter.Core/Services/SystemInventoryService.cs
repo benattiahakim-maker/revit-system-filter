@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Mechanical;
+using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.Plumbing;
 using Egis.Revit.SystemFilter.Core.Abstractions;
 using Egis.Revit.SystemFilter.Core.Configuration;
@@ -37,9 +38,14 @@ namespace Egis.Revit.SystemFilter.Core.Services
         private readonly SystemInventoryOptions _options;
         private readonly CvcFilterOptions _cvcOptions;
         private List<string> _fallbackLines = new List<string>();
+        private List<LevelInfo> _levels = new List<LevelInfo>();
+        private int _missingLevelBefore;
 
         /// <summary>Avertissements du dernier <see cref="BuildInventory"/> (sans chemin), à écrire dans run.log.</summary>
         public IReadOnlyList<string> Warnings { get; private set; } = new List<string>();
+
+        /// <summary>Lignes d'information du dernier <see cref="BuildInventory"/> (synthèses pièces et niveaux), pour run.log.</summary>
+        public IReadOnlyList<string> Infos { get; private set; } = new List<string>();
 
         public SystemInventoryService(
             SystemInventoryOptions? options = null,
@@ -67,6 +73,9 @@ namespace Egis.Revit.SystemFilter.Core.Services
             };
 
             _fallbackLines = new List<string>();
+            _levels = new FilteredElementCollector(document).OfClass(typeof(Level)).Cast<Level>()
+                .Select(l => new LevelInfo(l.Name, l.ProjectElevation)).ToList();
+            _missingLevelBefore = 0;
             var knownTypeIds = new HashSet<long>();
             // id -> record (null : élément vu mais de catégorie non couverte).
             var knownElementIds = new Dictionary<long, NetworkElementRecord?>();
@@ -84,6 +93,27 @@ namespace Egis.Revit.SystemFilter.Core.Services
             // Après la collecte de TOUS les éléments : baseEquipmentId doit désigner un élément exporté.
             var warnings = BaseEquipmentFallback.Summarize(_fallbackLines);
             warnings.AddRange(BaseEquipmentCheck.Apply(inventory.Systems, inventory.Elements.Select(e => e.Id)));
+            var equipments = inventory.Elements.Where(e => e.Category == "MechanicalEquipment").ToList();
+            var bySystem = new Dictionary<long, List<string?>>();
+            foreach (var e in inventory.Elements)
+            {
+                foreach (var pid in e.ParentIds)
+                {
+                    if (!bySystem.TryGetValue(pid, out var list)) bySystem[pid] = list = new List<string?>();
+                    list.Add(e.Level);
+                }
+            }
+            foreach (var system in inventory.Systems)
+            {
+                system.Levels = LevelChoice.SortDistinct(
+                    bySystem.TryGetValue(system.Id, out var names) ? names : new List<string?>(), _levels);
+            }
+
+            Infos = new List<string>
+            {
+                RoomChoice.Summary(equipments),
+                LevelChoice.Summary(inventory.Elements.Count, _missingLevelBefore, inventory.Elements.Count(e => e.Level == null)),
+            };
             Warnings = warnings;
 
             inventory.Summary = new InventorySummary
@@ -288,11 +318,12 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 Family = elementType?.FamilyName,
                 Type = elementType?.Name,
                 Name = element.Name,
-                Level = GetLevelName(document, element),
+                Level = GetLevelName(document, element, ref _missingLevelBefore, _levels),
                 Size = GetSize(element),
                 LengthMm = GetLengthMm(element),
                 ParentIds = new List<long> { systemId },
             };
+            record.Room = GetRoom(document, element);
 
             if (builtInCategory == BuiltInCategory.OST_MechanicalEquipment)
             {
@@ -304,18 +335,101 @@ namespace Egis.Revit.SystemFilter.Core.Services
             inventory.Elements.Add(record);
         }
 
-        private static string? GetLevelName(Document document, Element element)
+        private static readonly BuiltInParameter[] LevelParameters =
         {
-            if (element.LevelId != ElementId.InvalidElementId)
-            {
-                return document.GetElement(element.LevelId)?.Name;
-            }
+            BuiltInParameter.FAMILY_LEVEL_PARAM,
+            BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM,
+            BuiltInParameter.RBS_START_LEVEL_PARAM,
+            BuiltInParameter.INSTANCE_SCHEDULE_ONLY_LEVEL_PARAM,
+        };
 
-            var levelParameter = element.get_Parameter(BuiltInParameter.RBS_START_LEVEL_PARAM);
-            var levelId = levelParameter?.AsElementId();
-            return levelId is not null && levelId != ElementId.InvalidElementId
-                ? document.GetElement(levelId)?.Name
-                : null;
+        /// <summary>LevelId, paramètres de niveau, niveau de l'hôte (lien compris), puis altitude ; choix dans <see cref="LevelChoice"/>.</summary>
+        private static string? GetLevelName(Document document, Element element, ref int missingBefore, IReadOnlyList<LevelInfo> levels)
+        {
+            var direct = new List<string?> { LevelNameOf(document, element.LevelId) };
+            direct.AddRange(LevelParameters.Select(p => LevelNameOf(document, LevelIdParam(element, p))));
+            if (direct.All(string.IsNullOrWhiteSpace)) missingBefore++;
+
+            var candidates = direct.Concat(HostLevel(document, element));
+            return LevelChoice.Choose(candidates, levels, InsertionZ(element));
+        }
+
+        private static IEnumerable<string?> HostLevel(Document document, Element element)
+        {
+            if (!(element is FamilyInstance fi) || fi.Host is null) yield break;
+            var host = fi.Host;
+            if (host is RevitLinkInstance link)
+            {
+                // Hôte dans un lien : on prend l'élément hôte du document lié s'il est accessible.
+                var linkDoc = link.GetLinkDocument();
+                var reference = fi.HostFace;
+                if (linkDoc != null && reference != null && reference.LinkedElementId != ElementId.InvalidElementId)
+                {
+                    var linked = linkDoc.GetElement(reference.LinkedElementId);
+                    if (linked != null) yield return LevelNameOf(linkDoc, linked.LevelId);
+                }
+                yield break;
+            }
+            yield return LevelNameOf(document, host.LevelId);
+            foreach (var p in LevelParameters) yield return LevelNameOf(document, LevelIdParam(host, p));
+        }
+
+        private static ElementId? LevelIdParam(Element element, BuiltInParameter parameter)
+        {
+            var p = element.get_Parameter(parameter);
+            return p != null && p.StorageType == StorageType.ElementId ? p.AsElementId() : null;
+        }
+
+        private static string? LevelNameOf(Document document, ElementId? id) =>
+            id is not null && id != ElementId.InvalidElementId ? (document.GetElement(id) as Level)?.Name : null;
+
+        private static double? InsertionZ(Element element)
+        {
+            if (element.Location is LocationPoint lp) return lp.Point.Z;
+            if (element.Location is LocationCurve lc) return Math.Min(lc.Curve.GetEndPoint(0).Z, lc.Curve.GetEndPoint(1).Z);
+            var box = element.get_BoundingBox(null);
+            return box is null ? (double?)null : (box.Min.Z + box.Max.Z) / 2;
+        }
+
+        /// <summary>Espace MEP, puis pièce de la maquette, puis pièce d'un lien chargé ; choix dans <see cref="RoomChoice"/>.</summary>
+        private static RoomRecord? GetRoom(Document document, Element element)
+        {
+            var fi = element as FamilyInstance;
+            var point = InsertionPoint(element);
+
+            SpatialElement? space = Safe(() => fi?.Space) ?? (point is null ? null : Safe(() => document.GetSpaceAtPoint(point)));
+            if (space != null) return RoomChoice.Choose(ToRecord(space), null, null);
+
+            SpatialElement? room = Safe(() => fi?.Room) ?? (point is null ? null : Safe(() => document.GetRoomAtPoint(point)));
+            if (room != null) return RoomChoice.Choose(null, ToRecord(room), null);
+
+            if (point is null) return null;
+            foreach (var link in new FilteredElementCollector(document).OfClass(typeof(RevitLinkInstance)).Cast<RevitLinkInstance>())
+            {
+                var linkDoc = Safe(() => link.GetLinkDocument());
+                if (linkDoc is null) continue;
+                var local = link.GetTotalTransform().Inverse.OfPoint(point);
+                var linked = Safe(() => linkDoc.GetRoomAtPoint(local));
+                if (linked != null) return RoomChoice.Choose(null, null, ToRecord(linked));
+            }
+            return null;
+        }
+
+        private static RoomRecord ToRecord(SpatialElement s) =>
+            new RoomRecord { Id = s.Id.Value, Number = s.Number, Name = s.Name };
+
+        private static XYZ? InsertionPoint(Element element)
+        {
+            if (element.Location is LocationPoint lp) return lp.Point;
+            var box = element.get_BoundingBox(null);
+            return box is null ? null : (box.Min + box.Max) / 2;
+        }
+
+        private static T? Safe<T>(Func<T?> read) where T : class
+        {
+            try { return read(); }
+            catch (Autodesk.Revit.Exceptions.ApplicationException) { return null; }
+            catch (InvalidOperationException) { return null; }
         }
 
         private static string? GetSize(Element element)

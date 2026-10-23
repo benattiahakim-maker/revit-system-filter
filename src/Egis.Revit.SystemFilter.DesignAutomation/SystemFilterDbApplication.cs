@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
 using DesignAutomationFramework;
@@ -51,9 +52,10 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
                     open.DetachFromCentralOption = DetachFromCentralOption.DetachAndPreserveWorksets;
                 }
                 document = app.OpenDocumentFile(modelPath, open);
+                ReloadUnloadedLinks(document, ws);
                 ReportUnloadedLinks(document, ws.Log);
 
-                var json = new SystemInventoryExport().Serialize(document, ws.Settings.ToInventoryOptions(), ws.Log.Warn);
+                var json = new SystemInventoryExport().Serialize(document, ws.Settings.ToInventoryOptions(), ws.Log.Warn, ws.Log.Info);
                 ws.WriteInventory(json);
                 ws.Log.Info($"{ws.Settings.OutputFileName} écrit");
                 ws.Log.Info($"terminé : {ws.Log.Warnings} avertissement(s)");
@@ -112,6 +114,49 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
             data.IsTransmitted = true;
             TransmissionData.WriteTransmissionData(modelPath, data);
             ws.Log.Info($"liens : {found} chargé(s), {missing} manquant(s)");
+        }
+
+        /// <summary>
+        /// Après ouverture : chaque RevitLinkType encore non chargé est cherché dans le dossier de travail
+        /// (chemin relatif puis nom de fichier, récursif) et rechargé par LoadFrom, dans une transaction.
+        /// </summary>
+        private static void ReloadUnloadedLinks(Document document, JobWorkspace ws)
+        {
+            var resolver = ws.CreateLinkResolver();
+            foreach (var type in new FilteredElementCollector(document).OfClass(typeof(RevitLinkType)).Cast<RevitLinkType>().ToList())
+            {
+                if (RevitLinkType.IsLoaded(document, type.Id)) continue;
+                string? saved = null;
+                try
+                {
+                    var reference = ExternalFileUtils.GetExternalFileReference(document, type.Id);
+                    if (reference != null) saved = ModelPathUtils.ConvertModelPathToUserVisiblePath(reference.GetPath());
+                }
+                catch (Autodesk.Revit.Exceptions.ApplicationException) { /* référence illisible : repli sur le nom */ }
+                var name = LinkResolver.DisplayName(saved ?? type.Name);
+                var relative = resolver.Resolve(saved ?? type.Name);
+                if (relative is null)
+                {
+                    ws.Log.Info(LinkResolver.ReloadMessage(name, null));
+                    continue;
+                }
+                using (var t = new Transaction(document, "Recharger le lien"))
+                {
+                    try
+                    {
+                        t.Start();
+                        var path = ModelPathUtils.ConvertUserVisiblePathToModelPath(resolver.FullPath(relative));
+                        type.LoadFrom(path, new WorksetConfiguration());
+                        t.Commit();
+                        ws.Log.Info(LinkResolver.ReloadMessage(name, relative));
+                    }
+                    catch (Exception ex)
+                    {
+                        if (t.HasStarted() && !t.HasEnded()) t.RollBack();
+                        ws.Log.Info(LinkResolver.ReloadMessage(name, relative, ex.GetType().Name));
+                    }
+                }
+            }
         }
 
         private static void ReportUnloadedLinks(Document document, RunLog log)

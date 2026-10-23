@@ -20,7 +20,7 @@
       "zip": false,
       "ondemand": false,
       "verb": "get",
-      "description": "Réglages facultatifs (settings.json : mainModelPath, outputFileName, includeDuctSystems, includePipingSystems)",
+      "description": "Réglages facultatifs (settings.json : mainModelPath (alias hostModel), outputFileName, includeDuctSystems, includePipingSystems)",
       "required": false,
       "localName": "settings.json"
     },

@@ -28,8 +28,10 @@ modèle .rvt ──► SystemInventoryService.BuildInventory(doc) ──► syst
 Trois collections à plat reliées par clés (chaque **enfant référence son parent**) :
 
 - `systemTypes[]` — `{ id, name, domain, classification }`
-- `systems[]` — `{ id, uniqueId, name, systemTypeId, baseEquipmentId }` → parent type ; `baseEquipmentId` (toujours présent) = clé dans `elements[]` de l'équipement de départ (`BaseEquipment`, ex. CTA ; à défaut, repli sur l'équipement mécanique du réseau raccordé au plus de systèmes, puis plus petit id, avec `WARN` dans `run.log`), ou `null` s'il n'y en a pas ou s'il est absent de `elements[]` (alors `WARN` dans `run.log`)
-- `elements[]` — `{ id, uniqueId, category, domain, family, type, name, level, size, lengthMm, [materiel, numCta], parentIds }` → `parentIds` liste les clés des parents (aujourd'hui le ou les systèmes ; en V2 s'y ajouteront les espaces — voir [cahier des charges](CAHIER-DES-CHARGES.md))
+- `systems[]` — `{ id, uniqueId, name, systemTypeId, baseEquipmentId, levels }` → parent type ; `baseEquipmentId` (toujours présent) = clé dans `elements[]` de l'équipement de départ (`BaseEquipment`, ex. CTA ; à défaut, repli sur l'équipement mécanique du réseau raccordé au plus de systèmes, puis plus petit id, avec `WARN` dans `run.log`), ou `null` s'il n'y en a pas ou s'il est absent de `elements[]` (alors `WARN` dans `run.log`)
+- `elements[]` — `{ id, uniqueId, category, domain, family, type, name, room, level, size, lengthMm, [materiel, numCta], parentIds }` → `parentIds` liste les clés des parents (aujourd'hui le ou les systèmes ; en V2 s'y ajouteront les espaces — voir [cahier des charges](CAHIER-DES-CHARGES.md))
+  - `level` = nom du niveau : `LevelId`, puis paramètres de niveau (`FAMILY_LEVEL_PARAM`, `INSTANCE_REFERENCE_LEVEL_PARAM`, `RBS_START_LEVEL_PARAM`, `INSTANCE_SCHEDULE_ONLY_LEVEL_PARAM`), puis niveau de l'hôte (y compris hôte dans un lien, nom du niveau du lien), sinon niveau le plus proche sous l'altitude du point d'insertion (ou du centre de la boîte englobante). `systems[].levels` = noms distincts des niveaux des éléments du système, triés par élévation. `run.log` : `INFO niveaux : N éléments ; sans niveau avant repli : a ; après repli (hôte / altitude) : b`.
+  - `room` = `{ id, number, name, source }` : espace MEP (`FamilyInstance.Space` / `GetSpaceAtPoint`, source `space`), sinon pièce de la maquette (`FamilyInstance.Room` / `GetRoomAtPoint`, `room`), sinon pièce d'un lien chargé (`linkedRoom`) ; omis si rien trouvé. `run.log` : `INFO pièces : équipements mécaniques avec pièce : x (space …, room …, linkedRoom …) ; sans pièce : y`.
 
 ```jsonc
 {
@@ -116,3 +118,9 @@ Il tourne sous Windows et sous Linux (PowerShell 7).
 2. **Activity** : paramètres `rvtFile` (entrée), `options` → `options.json` (entrée, facultatif),
    `result` → `systems-inventory.json` (sortie) ; créer un alias.
 3. **WorkItem** : poster les URLs signées pour lancer l'exécution.
+
+## Rechargement des liens après ouverture
+
+Avant ouverture, les liens sont redirigés vers le dossier extrait (TransmissionData). Après ouverture, chaque `RevitLinkType` encore non chargé est cherché dans le dossier de travail (chemin relatif au modèle principal, puis nom de fichier unique, récursif) et rechargé par `RevitLinkType.LoadFrom(…, new WorksetConfiguration())` dans une transaction. `run.log` : une ligne `INFO lien rechargé : X.rvt chargé depuis …` ou `INFO lien rechargé : X.rvt introuvable dans le dossier de travail` par lien.
+
+Maquette hôte : `settings.json` → `mainModelPath` (alias `hostModel`), sinon l'unique `.rvt` à la racine du ZIP.
