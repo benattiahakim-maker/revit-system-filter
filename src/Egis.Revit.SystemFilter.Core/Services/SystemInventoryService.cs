@@ -110,6 +110,13 @@ namespace Egis.Revit.SystemFilter.Core.Services
                     AddElement(document, inventory, knownElementIds, element,
                         NetworkDomain.Duct, system.Id.Value);
                 }
+
+                // Équipement de départ (ex. CTA) : ajouté à elements[] avec ce système dans parentIds (sans doublon).
+                if (system.BaseEquipment is Element baseEquipment)
+                {
+                    AddElement(document, inventory, knownElementIds, baseEquipment,
+                        NetworkDomain.Duct, system.Id.Value);
+                }
             }
         }
 
@@ -129,6 +136,13 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 foreach (Element element in system.PipingNetwork)
                 {
                     AddElement(document, inventory, knownElementIds, element,
+                        NetworkDomain.Pipe, system.Id.Value);
+                }
+
+                // Équipement de départ : ajouté à elements[] avec ce système dans parentIds (sans doublon).
+                if (system.BaseEquipment is Element baseEquipment)
+                {
+                    AddElement(document, inventory, knownElementIds, baseEquipment,
                         NetworkDomain.Pipe, system.Id.Value);
                 }
             }
