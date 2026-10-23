@@ -94,7 +94,6 @@ namespace Egis.Revit.SystemFilter.Core.Services
             var warnings = BaseEquipmentFallback.Summarize(_fallbackLines);
             warnings.AddRange(BaseEquipmentCheck.Apply(inventory.Systems, inventory.Elements.Select(e => e.Id)));
             var equipments = inventory.Elements.Where(e => e.Category == "MechanicalEquipment").ToList();
-            var equipments = inventory.Elements.Where(e => e.Category == "MechanicalEquipment").ToList();
             var bySystem = new Dictionary<long, List<string?>>();
             foreach (var e in inventory.Elements)
             {
