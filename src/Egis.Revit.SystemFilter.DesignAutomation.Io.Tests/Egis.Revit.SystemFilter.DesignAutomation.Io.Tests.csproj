@@ -22,6 +22,7 @@
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\BaseEquipmentCheck.cs" Link="Core\BaseEquipmentCheck.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\BaseEquipmentFallback.cs" Link="Core\BaseEquipmentFallback.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\ParameterValueChoice.cs" Link="Core\ParameterValueChoice.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\LevelChoice.cs" Link="Core\LevelChoice.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\SystemRecord.cs" Link="Core\SystemRecord.cs" />
     <None Include="..\Packaging\definitions\**\activity.json" LinkBase="Data\definitions" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

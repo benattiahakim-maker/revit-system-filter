@@ -37,6 +37,8 @@ namespace Egis.Revit.SystemFilter.Core.Services
         private readonly SystemInventoryOptions _options;
         private readonly CvcFilterOptions _cvcOptions;
         private List<string> _fallbackLines = new List<string>();
+        private List<LevelInfo> _levels = new List<LevelInfo>();
+        private int _missingLevelBefore;
 
         /// <summary>Avertissements du dernier <see cref="BuildInventory"/> (sans chemin), à écrire dans run.log.</summary>
         public IReadOnlyList<string> Warnings { get; private set; } = new List<string>();
@@ -70,6 +72,9 @@ namespace Egis.Revit.SystemFilter.Core.Services
             };
 
             _fallbackLines = new List<string>();
+            _levels = new FilteredElementCollector(document).OfClass(typeof(Level)).Cast<Level>()
+                .Select(l => new LevelInfo(l.Name, l.ProjectElevation)).ToList();
+            _missingLevelBefore = 0;
             var knownTypeIds = new HashSet<long>();
             // id -> record (null : élément vu mais de catégorie non couverte).
             var knownElementIds = new Dictionary<long, NetworkElementRecord?>();
@@ -95,7 +100,26 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 equipments.Count(e => e.Mark != null),
                 _cvcOptions.EquipmentCtaParameterName,
                 _cvcOptions.MaterialNameParameterName);
-            Infos = new List<string> { summary.Info };
+            var bySystem = new Dictionary<long, List<string?>>();
+            foreach (var e in inventory.Elements)
+            {
+                foreach (var pid in e.ParentIds)
+                {
+                    if (!bySystem.TryGetValue(pid, out var list)) bySystem[pid] = list = new List<string?>();
+                    list.Add(e.Level);
+                }
+            }
+            foreach (var system in inventory.Systems)
+            {
+                system.Levels = LevelChoice.SortDistinct(
+                    bySystem.TryGetValue(system.Id, out var names) ? names : new List<string?>(), _levels);
+            }
+
+            Infos = new List<string>
+            {
+                summary.Info,
+                LevelChoice.Summary(inventory.Elements.Count, _missingLevelBefore, inventory.Elements.Count(e => e.Level == null)),
+            };
             warnings.AddRange(summary.Warnings);
             Warnings = warnings;
 
@@ -302,7 +326,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 Type = elementType?.Name,
                 Name = element.Name,
                 Mark = GetMark(element),
-                Level = GetLevelName(document, element),
+                Level = GetLevelName(document, element, ref _missingLevelBefore, _levels),
                 Size = GetSize(element),
                 LengthMm = GetLengthMm(element),
                 ParentIds = new List<long> { systemId },
@@ -337,18 +361,60 @@ namespace Egis.Revit.SystemFilter.Core.Services
             return new ParameterReading(true, text, valueString);
         }
 
-        private static string? GetLevelName(Document document, Element element)
+        private static readonly BuiltInParameter[] LevelParameters =
         {
-            if (element.LevelId != ElementId.InvalidElementId)
-            {
-                return document.GetElement(element.LevelId)?.Name;
-            }
+            BuiltInParameter.FAMILY_LEVEL_PARAM,
+            BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM,
+            BuiltInParameter.RBS_START_LEVEL_PARAM,
+            BuiltInParameter.INSTANCE_SCHEDULE_ONLY_LEVEL_PARAM,
+        };
 
-            var levelParameter = element.get_Parameter(BuiltInParameter.RBS_START_LEVEL_PARAM);
-            var levelId = levelParameter?.AsElementId();
-            return levelId is not null && levelId != ElementId.InvalidElementId
-                ? document.GetElement(levelId)?.Name
-                : null;
+        /// <summary>LevelId, paramètres de niveau, niveau de l'hôte (lien compris), puis altitude ; choix dans <see cref="LevelChoice"/>.</summary>
+        private static string? GetLevelName(Document document, Element element, ref int missingBefore, IReadOnlyList<LevelInfo> levels)
+        {
+            var direct = new List<string?> { LevelNameOf(document, element.LevelId) };
+            direct.AddRange(LevelParameters.Select(p => LevelNameOf(document, LevelIdParam(element, p))));
+            if (direct.All(string.IsNullOrWhiteSpace)) missingBefore++;
+
+            var candidates = direct.Concat(HostLevel(document, element));
+            return LevelChoice.Choose(candidates, levels, InsertionZ(element));
+        }
+
+        private static IEnumerable<string?> HostLevel(Document document, Element element)
+        {
+            if (!(element is FamilyInstance fi) || fi.Host is null) yield break;
+            var host = fi.Host;
+            if (host is RevitLinkInstance link)
+            {
+                // Hôte dans un lien : on prend l'élément hôte du document lié s'il est accessible.
+                var linkDoc = link.GetLinkDocument();
+                var reference = fi.HostFace;
+                if (linkDoc != null && reference != null && reference.LinkedElementId != ElementId.InvalidElementId)
+                {
+                    var linked = linkDoc.GetElement(reference.LinkedElementId);
+                    if (linked != null) yield return LevelNameOf(linkDoc, linked.LevelId);
+                }
+                yield break;
+            }
+            yield return LevelNameOf(document, host.LevelId);
+            foreach (var p in LevelParameters) yield return LevelNameOf(document, LevelIdParam(host, p));
+        }
+
+        private static ElementId? LevelIdParam(Element element, BuiltInParameter parameter)
+        {
+            var p = element.get_Parameter(parameter);
+            return p != null && p.StorageType == StorageType.ElementId ? p.AsElementId() : null;
+        }
+
+        private static string? LevelNameOf(Document document, ElementId? id) =>
+            id is not null && id != ElementId.InvalidElementId ? (document.GetElement(id) as Level)?.Name : null;
+
+        private static double? InsertionZ(Element element)
+        {
+            if (element.Location is LocationPoint lp) return lp.Point.Z;
+            if (element.Location is LocationCurve lc) return Math.Min(lc.Curve.GetEndPoint(0).Z, lc.Curve.GetEndPoint(1).Z);
+            var box = element.get_BoundingBox(null);
+            return box is null ? (double?)null : (box.Min.Z + box.Max.Z) / 2;
         }
 
         private static string? GetSize(Element element)
