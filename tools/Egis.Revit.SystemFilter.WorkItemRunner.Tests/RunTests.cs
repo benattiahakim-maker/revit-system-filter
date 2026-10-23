@@ -14,7 +14,7 @@ public sealed class RunTests
 
         Assert.NotNull(env.Server.SubmittedWorkItem);
         Assert.Equal("nick.SystemsInventory_R2026+test", env.Server.SubmittedWorkItem!["activityId"]!.GetValue<string>());
-        Assert.Contains(env.Server.Objects.Keys, k => k.EndsWith("/input.rvt", StringComparison.Ordinal));
+        Assert.Contains(env.Server.Objects.Keys, k => k.EndsWith("/inputZip.zip", StringComparison.Ordinal));
 
         Assert.Equal("success", env.ViewModel.WorkItemStatus);
         Assert.NotNull(env.ViewModel.Result);
@@ -45,8 +45,8 @@ public sealed class RunTests
 
         await env.ViewModel.RunCommand.ExecuteAsync();
 
-        Assert.Contains(env.Server.Objects.Keys, k => k.EndsWith("/options.json", StringComparison.Ordinal));
-        Assert.Contains("options", env.Server.SubmittedWorkItem!["arguments"]!.AsObject().Select(a => a.Key));
+        Assert.Contains(env.Server.Objects.Keys, k => k.EndsWith("/settings.json", StringComparison.Ordinal));
+        Assert.Contains("settings", env.Server.SubmittedWorkItem!["arguments"]!.AsObject().Select(a => a.Key));
     }
 
     [Fact]
@@ -58,8 +58,8 @@ public sealed class RunTests
 
         await env.ViewModel.RunCommand.ExecuteAsync();
 
-        Assert.DoesNotContain(env.Server.Objects.Keys, k => k.EndsWith("/options.json", StringComparison.Ordinal));
-        Assert.DoesNotContain("options", env.Server.SubmittedWorkItem!["arguments"]!.AsObject().Select(a => a.Key));
+        Assert.DoesNotContain(env.Server.Objects.Keys, k => k.EndsWith("/settings.json", StringComparison.Ordinal));
+        Assert.DoesNotContain("settings", env.Server.SubmittedWorkItem!["arguments"]!.AsObject().Select(a => a.Key));
     }
 
     [Fact]

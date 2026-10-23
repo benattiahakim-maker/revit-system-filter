@@ -2,36 +2,36 @@
   "id": "SystemsInventory_R2026",
   "engine": "Autodesk.Revit+2026",
   "commandLine": [
-    "$(engine.path)\\\\revitcoreconsole.exe /i \"$(args[rvtFile].path)\" /al \"$(appbundles[EgisSystemFilter_R2026].path)\""
+    "$(engine.path)\\\\revitcoreconsole.exe /al \"$(appbundles[EgisSystemFilter_R2026].path)\""
   ],
   "appbundles": [
     "{{NICKNAME}}.EgisSystemFilter_R2026+{{APPBUNDLE_ALIAS}}"
   ],
   "parameters": {
-    "rvtFile": {
-      "zip": false,
+    "inputZip": {
+      "zip": true,
       "ondemand": false,
       "verb": "get",
-      "description": "Maquette Revit à analyser (.rvt)",
+      "description": "ZIP : maquette principale (.rvt) et ses liens, en arborescence relative",
       "required": true,
-      "localName": "input.rvt"
+      "localName": "input"
     },
-    "options": {
+    "settings": {
       "zip": false,
       "ondemand": false,
       "verb": "get",
-      "description": "Options facultatives de l'export (options.json)",
+      "description": "Réglages facultatifs (settings.json : mainModelPath, outputFileName, includeDuctSystems, includePipingSystems)",
       "required": false,
-      "localName": "options.json"
+      "localName": "settings.json"
     },
     "result": {
-      "zip": false,
+      "zip": true,
       "ondemand": false,
       "verb": "put",
-      "description": "Inventaire normalisé des systèmes (systems-inventory.json)",
+      "description": "output.zip : systems-inventory.json (format 1.0) et run.log",
       "required": true,
-      "localName": "systems-inventory.json"
+      "localName": "result"
     }
   },
-  "description": "Revit System Filter : export de l'inventaire des systèmes (Revit 2026)"
+  "description": "Revit System Filter : export de l'inventaire des systèmes depuis un ZIP (Revit 2026)"
 }

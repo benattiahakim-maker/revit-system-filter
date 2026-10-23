@@ -1,5 +1,7 @@
 # APS Design Automation for Revit
 
+> **Mise à jour (feat/zip-io)** : l'Activity prend désormais `inputZip` / `settings` (settings.json) / `result` (output.zip). Les mentions de `rvtFile` et `options.json` ci-dessous décrivent l'ancien contrat ; le contrat à jour est dans le README (section « Design Automation : contrat ZIP »).
+
 Le projet `Egis.Revit.SystemFilter.DesignAutomation` s'exécute **sans interface**,
 dans l'environnement headless de
 [APS Design Automation for Revit](https://aps.autodesk.com/en/docs/design-automation/v3/).
@@ -26,7 +28,7 @@ modèle .rvt ──► SystemInventoryService.BuildInventory(doc) ──► syst
 Trois collections à plat reliées par clés (chaque **enfant référence son parent**) :
 
 - `systemTypes[]` — `{ id, name, domain, classification }`
-- `systems[]` — `{ id, uniqueId, name, systemTypeId }` → parent type
+- `systems[]` — `{ id, uniqueId, name, systemTypeId, baseEquipmentId }` → parent type ; `baseEquipmentId` (toujours présent) = clé dans `elements[]` de l'équipement de départ (`BaseEquipment`, ex. CTA), ou `null` s'il n'y en a pas ou s'il est absent de `elements[]` (alors `WARN` dans `run.log`)
 - `elements[]` — `{ id, uniqueId, category, domain, family, type, name, level, size, lengthMm, [materiel, numCta], parentIds }` → `parentIds` liste les clés des parents (aujourd'hui le ou les systèmes ; en V2 s'y ajouteront les espaces — voir [cahier des charges](CAHIER-DES-CHARGES.md))
 
 ```jsonc
@@ -45,7 +47,7 @@ Trois collections à plat reliées par clés (chaque **enfant référence son pa
 }
 ```
 
-Les champs nuls sont omis. `domain` vaut `Duct` ou `Pipe`. `parentIds` ne porte que
+Les champs nuls sont omis. `domain` vaut `Duct` ou `Pipe`. `parentIds` contient tous les systèmes de l'élément (sans doublon, ordre de première rencontre) et ne porte que
 des clés (le nom du parent vit une seule fois dans sa collection) ; une clé se résout
 dans `systems` (parent système) ou, en V2, dans `spaces` (parent espace). Catégories couvertes :
 

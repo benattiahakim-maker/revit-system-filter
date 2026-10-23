@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0",
+  "mainModelPath": "Main.rvt",
+  "outputFileName": "systems-inventory.json",
+  "includeDuctSystems": true,
+  "includePipingSystems": true
+}

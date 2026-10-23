@@ -42,7 +42,7 @@ public sealed partial class FakeAps : HttpMessageHandler
         using var stream = new MemoryStream();
         using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
         {
-            using (var writer = new StreamWriter(archive.CreateEntry("result.json").Open(), new UTF8Encoding(false)))
+            using (var writer = new StreamWriter(archive.CreateEntry("systems-inventory.json").Open(), new UTF8Encoding(false)))
             {
                 writer.Write(json);
             }

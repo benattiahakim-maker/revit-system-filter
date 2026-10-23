@@ -37,6 +37,9 @@ namespace Egis.Revit.SystemFilter.Core.Services
         private readonly SystemInventoryOptions _options;
         private readonly CvcFilterOptions _cvcOptions;
 
+        /// <summary>Avertissements du dernier <see cref="BuildInventory"/> (sans chemin), à écrire dans run.log.</summary>
+        public IReadOnlyList<string> Warnings { get; private set; } = new List<string>();
+
         public SystemInventoryService(
             SystemInventoryOptions? options = null,
             CvcFilterOptions? cvcOptions = null)
@@ -63,7 +66,8 @@ namespace Egis.Revit.SystemFilter.Core.Services
             };
 
             var knownTypeIds = new HashSet<long>();
-            var knownElementIds = new HashSet<long>();
+            // id -> record (null : élément vu mais de catégorie non couverte).
+            var knownElementIds = new Dictionary<long, NetworkElementRecord?>();
 
             if (_options.IncludeDuctSystems)
             {
@@ -74,6 +78,9 @@ namespace Egis.Revit.SystemFilter.Core.Services
             {
                 CollectPipingSystems(document, inventory, knownTypeIds, knownElementIds);
             }
+
+            // Après la collecte de TOUS les éléments : baseEquipmentId doit désigner un élément exporté.
+            Warnings = BaseEquipmentCheck.Apply(inventory.Systems, inventory.Elements.Select(e => e.Id));
 
             inventory.Summary = new InventorySummary
             {
@@ -87,7 +94,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
 
         private void CollectDuctSystems(
             Document document, SystemInventory inventory,
-            HashSet<long> knownTypeIds, HashSet<long> knownElementIds)
+            HashSet<long> knownTypeIds, Dictionary<long, NetworkElementRecord?> knownElementIds)
         {
             var systems = new FilteredElementCollector(document)
                 .OfClass(typeof(MechanicalSystem))
@@ -103,12 +110,19 @@ namespace Egis.Revit.SystemFilter.Core.Services
                     AddElement(document, inventory, knownElementIds, element,
                         NetworkDomain.Duct, system.Id.Value);
                 }
+
+                // Équipement de départ (ex. CTA) : ajouté à elements[] avec ce système dans parentIds (sans doublon).
+                if (system.BaseEquipment is Element baseEquipment)
+                {
+                    AddElement(document, inventory, knownElementIds, baseEquipment,
+                        NetworkDomain.Duct, system.Id.Value);
+                }
             }
         }
 
         private void CollectPipingSystems(
             Document document, SystemInventory inventory,
-            HashSet<long> knownTypeIds, HashSet<long> knownElementIds)
+            HashSet<long> knownTypeIds, Dictionary<long, NetworkElementRecord?> knownElementIds)
         {
             var systems = new FilteredElementCollector(document)
                 .OfClass(typeof(PipingSystem))
@@ -122,6 +136,13 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 foreach (Element element in system.PipingNetwork)
                 {
                     AddElement(document, inventory, knownElementIds, element,
+                        NetworkDomain.Pipe, system.Id.Value);
+                }
+
+                // Équipement de départ : ajouté à elements[] avec ce système dans parentIds (sans doublon).
+                if (system.BaseEquipment is Element baseEquipment)
+                {
+                    AddElement(document, inventory, knownElementIds, baseEquipment,
                         NetworkDomain.Pipe, system.Id.Value);
                 }
             }
@@ -148,22 +169,31 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 UniqueId = system.UniqueId,
                 Name = system.Name,
                 SystemTypeId = typeId.Value,
+                BaseEquipmentId = BaseEquipmentOf(system),
             });
         }
 
+        private static long? BaseEquipmentOf(MEPSystem system) =>
+            (system as MechanicalSystem)?.BaseEquipment?.Id.Value
+            ?? (system as PipingSystem)?.BaseEquipment?.Id.Value;
+
         private void AddElement(
-            Document document, SystemInventory inventory, HashSet<long> knownElementIds,
+            Document document, SystemInventory inventory, Dictionary<long, NetworkElementRecord?> knownElementIds,
             Element element, NetworkDomain domain, long systemId)
         {
-            if (element is null || !knownElementIds.Add(element.Id.Value))
+            if (element is null) return;
+
+            if (knownElementIds.TryGetValue(element.Id.Value, out var known))
             {
-                // Élément déjà rattaché à un système : premier système rencontré = parent.
+                // Élément déjà rencontré : parentIds contient TOUS ses systèmes (sans doublon).
+                if (known != null) ParentIdMerge.Add(known.ParentIds, systemId);
                 return;
             }
 
             var builtInCategory = element.Category?.BuiltInCategory ?? BuiltInCategory.INVALID;
             if (!CategoryKeys.TryGetValue(builtInCategory, out var categoryKey))
             {
+                knownElementIds[element.Id.Value] = null;
                 return;
             }
 
@@ -190,6 +220,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 record.NumCta = element.LookupParameter(_cvcOptions.EquipmentCtaParameterName)?.AsString();
             }
 
+            knownElementIds[element.Id.Value] = record;
             inventory.Elements.Add(record);
         }
 

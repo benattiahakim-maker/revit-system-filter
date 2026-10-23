@@ -76,9 +76,9 @@ public sealed class MainViewModel : ObservableObject
             SaveLastConfig();
             return Task.CompletedTask;
         });
-        OpenOptionsCommand = new AsyncRelayCommand(() => RunAsync("options.json", () =>
+        OpenOptionsCommand = new AsyncRelayCommand(() => RunAsync("settings.json", () =>
         {
-            if (_files?.OpenFile("options.json", "JSON (*.json)|*.json", null) is { } path)
+            if (_files?.OpenFile("settings.json", "JSON (*.json)|*.json", null) is { } path)
             {
                 OptionsText = File.ReadAllText(path);
                 SaveLastConfig();
@@ -212,7 +212,7 @@ public sealed class MainViewModel : ObservableObject
         set => SetProperty(ref _modelPath, value.Trim());
     }
 
-    /// <summary>Contenu de options.json (éditeur, facultatif) ; validé à chaque modification.</summary>
+    /// <summary>Contenu de settings.json (éditeur, facultatif) ; validé à chaque modification.</summary>
     public string OptionsText
     {
         get => _optionsText;
@@ -222,7 +222,7 @@ public sealed class MainViewModel : ObservableObject
             {
                 var check = InputChecks.CheckOptions(value);
                 OptionsValidation = check.Errors.Concat(check.Warnings).FirstOrDefault()
-                    ?? (string.IsNullOrWhiteSpace(value) ? "options.json vide : tous les réseaux." : "options.json valide.");
+                    ?? (string.IsNullOrWhiteSpace(value) ? "settings.json vide : tous les réseaux." : "settings.json valide.");
             }
         }
     }

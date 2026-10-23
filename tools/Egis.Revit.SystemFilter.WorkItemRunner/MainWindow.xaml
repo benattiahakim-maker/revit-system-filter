@@ -83,7 +83,7 @@
                   <Button Content="Ouvrir…" Style="{StaticResource Secondary}" Command="{Binding OpenOptionsCommand}" />
                   <Button Content="Exemple" Style="{StaticResource Secondary}" Command="{Binding LoadExampleOptionsCommand}" Margin="0,2,0,2" />
                 </StackPanel>
-                <TextBlock Text="options.json (facultatif)" Style="{StaticResource Hint}" VerticalAlignment="Center" />
+                <TextBlock Text="settings.json (facultatif)" Style="{StaticResource Hint}" VerticalAlignment="Center" />
               </DockPanel>
               <TextBox Text="{Binding OptionsText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" AcceptsTab="True"
                        FontFamily="Consolas" Height="150" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,4,0,4" />

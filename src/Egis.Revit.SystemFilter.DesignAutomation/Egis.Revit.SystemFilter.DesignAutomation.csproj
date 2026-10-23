@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Egis.Revit.SystemFilter.Core\Egis.Revit.SystemFilter.Core.csproj" />
+    <!-- Logique ZIP / settings / liens / sortie, sans Revit (testée sous Linux). Copiée dans le bundle. -->
+    <ProjectReference Include="..\Egis.Revit.SystemFilter.DesignAutomation.Io\Egis.Revit.SystemFilter.DesignAutomation.Io.csproj" />
   </ItemGroup>
 
   <!--
