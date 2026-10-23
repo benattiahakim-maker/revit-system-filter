@@ -125,9 +125,10 @@ dotnet test src/Egis.Revit.SystemFilter.DesignAutomation.Io.Tests
 
 ### Note de déploiement (à faire par l'utilisateur, rien n'est publié par la CI ni par la PR)
 
-1. Compiler en Release sous Windows (`dotnet build -c Release`) et produire le bundle
-   `EgisSystemFilter_R2026` / `_R2027` comme d'habitude, en vérifiant que
-   `Egis.Revit.SystemFilter.DesignAutomation.Io.dll` est bien dans le dossier `Contents` du bundle.
+1. Produire les bundles avec `pwsh ./build/package-da.ps1` : il compile en Release et crée
+   `artifacts/EgisSystemFilter_R2026.zip` et `_R2027.zip`, avec `DesignAutomationBridge.dll` et
+   `Egis.Revit.SystemFilter.DesignAutomation.Io.dll` dans `Contents/` (vérifié par le script).
+   Détails : [docs/design-automation.md](docs/design-automation.md#fabriquer-le-bundle).
 2. Publier la nouvelle version de l'AppBundle et déplacer son alias (DaManager), d'abord sur un alias de test.
 3. Publier la nouvelle version de l'Activity depuis `src/Packaging/definitions/<année>/activity.json`
    (arguments `inputZip` / `settings` / `result` ; l'ancien contrat `rvtFile` / `options` disparaît
