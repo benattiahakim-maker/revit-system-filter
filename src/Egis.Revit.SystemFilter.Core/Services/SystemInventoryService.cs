@@ -36,6 +36,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
 
         private readonly SystemInventoryOptions _options;
         private readonly CvcFilterOptions _cvcOptions;
+        private List<string> _fallbackLines = new List<string>();
 
         /// <summary>Avertissements du dernier <see cref="BuildInventory"/> (sans chemin), à écrire dans run.log.</summary>
         public IReadOnlyList<string> Warnings { get; private set; } = new List<string>();
@@ -65,6 +66,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 },
             };
 
+            _fallbackLines = new List<string>();
             var knownTypeIds = new HashSet<long>();
             // id -> record (null : élément vu mais de catégorie non couverte).
             var knownElementIds = new Dictionary<long, NetworkElementRecord?>();
@@ -80,7 +82,9 @@ namespace Egis.Revit.SystemFilter.Core.Services
             }
 
             // Après la collecte de TOUS les éléments : baseEquipmentId doit désigner un élément exporté.
-            Warnings = BaseEquipmentCheck.Apply(inventory.Systems, inventory.Elements.Select(e => e.Id));
+            var warnings = BaseEquipmentFallback.Summarize(_fallbackLines);
+            warnings.AddRange(BaseEquipmentCheck.Apply(inventory.Systems, inventory.Elements.Select(e => e.Id)));
+            Warnings = warnings;
 
             inventory.Summary = new InventorySummary
             {
@@ -117,6 +121,12 @@ namespace Egis.Revit.SystemFilter.Core.Services
                     AddElement(document, inventory, knownElementIds, baseEquipment,
                         NetworkDomain.Duct, system.Id.Value);
                 }
+                else if (FallbackEquipment(document, system, system.DuctNetwork) is Element fallback)
+                {
+                    inventory.Systems[inventory.Systems.Count - 1].BaseEquipmentId = fallback.Id.Value;
+                    AddElement(document, inventory, knownElementIds, fallback,
+                        NetworkDomain.Duct, system.Id.Value);
+                }
             }
         }
 
@@ -145,6 +155,12 @@ namespace Egis.Revit.SystemFilter.Core.Services
                     AddElement(document, inventory, knownElementIds, baseEquipment,
                         NetworkDomain.Pipe, system.Id.Value);
                 }
+                else if (FallbackEquipment(document, system, system.PipingNetwork) is Element fallback)
+                {
+                    inventory.Systems[inventory.Systems.Count - 1].BaseEquipmentId = fallback.Id.Value;
+                    AddElement(document, inventory, knownElementIds, fallback,
+                        NetworkDomain.Pipe, system.Id.Value);
+                }
             }
         }
 
@@ -171,6 +187,70 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 SystemTypeId = typeId.Value,
                 BaseEquipmentId = BaseEquipmentOf(system),
             });
+        }
+
+        /// <summary>
+        /// Repli si BaseEquipment est null : équipements mécaniques du système (éléments du système,
+        /// éléments du réseau et leurs voisins via les connecteurs), choix par <see cref="BaseEquipmentFallback"/>.
+        /// </summary>
+        private Element? FallbackEquipment(Document document, MEPSystem system, ElementSet network)
+        {
+            var equipments = new Dictionary<long, Element>();
+            void Consider(Element? e)
+            {
+                if (e is FamilyInstance && e.Category?.Id.Value == (long)BuiltInCategory.OST_MechanicalEquipment)
+                    equipments[e.Id.Value] = e;
+            }
+
+            foreach (Element e in system.Elements) Consider(e);
+            foreach (Element e in network)
+            {
+                Consider(e);
+                foreach (Connector c in ConnectorsOf(e))
+                {
+                    if (!c.IsConnected) continue;
+                    foreach (Connector r in c.AllRefs) Consider(r.Owner);
+                }
+            }
+            if (equipments.Count == 0) return null;
+
+            var candidates = equipments.Values
+                .Select(e => new EquipmentCandidate(e.Id.Value, NetworkCount(e)))
+                .ToList();
+            var chosen = BaseEquipmentFallback.Choose(candidates);
+            if (chosen is not long id) return null;
+            _fallbackLines.Add(BaseEquipmentFallback.Message(system.Id.Value, system.Name, id, candidates.Count));
+            return equipments[id];
+        }
+
+        private static IEnumerable<Connector> ConnectorsOf(Element element)
+        {
+            ConnectorSet? set = element switch
+            {
+                FamilyInstance fi => fi.MEPModel?.ConnectorManager?.Connectors,
+                MEPCurve curve => curve.ConnectorManager?.Connectors,
+                _ => null,
+            };
+            if (set is null) yield break;
+            foreach (Connector c in set) yield return c;
+        }
+
+        /// <summary>Nombre de systèmes MEP distincts auxquels l'équipement est raccordé (via ses connecteurs).</summary>
+        private static int NetworkCount(Element equipment)
+        {
+            var ids = new HashSet<long>();
+            foreach (var c in ConnectorsOf(equipment))
+            {
+                try
+                {
+                    if (c.MEPSystem is MEPSystem s) ids.Add(s.Id.Value);
+                }
+                catch (Autodesk.Revit.Exceptions.ApplicationException)
+                {
+                    // connecteur sans système (ex. électrique non géré) : ignoré
+                }
+            }
+            return ids.Count;
         }
 
         private static long? BaseEquipmentOf(MEPSystem system) =>
