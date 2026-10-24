@@ -73,9 +73,8 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 var props = new List<EnvelopeProperty>();
                 props.AddRange(Text(ViewerIdKey, "Identifiant du viewer", e.UniqueId));
                 props.AddRange(Text("modelKey", "Maquette", hostKey));
-                // Repère lisible : ElementId (celui que voit l'utilisateur dans Revit) et UniqueId (le même texte que viewerId, affichable).
+                // Repère lisible : ElementId (celui que voit l'utilisateur dans Revit). L'UniqueId est déjà porté par viewerId.
                 props.Add(new EnvelopeProperty { Key = "revitId", Label = "Identifiant Revit", Value = e.Id.ToString(CultureInfo.InvariantCulture) });
-                props.AddRange(Text("revitUniqueId", "Identifiant unique Revit", e.UniqueId));
                 // Mêmes membres scalaires que le JSON de l'inventaire (clés identiques) ; libellés lisibles, les mêmes que sur les pièces et systèmes.
                 props.AddRange(Text("category", "Catégorie", e.Category));
                 props.AddRange(Text("domain", "Domaine", e.Domain.ToString()));

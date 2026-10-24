@@ -163,6 +163,5 @@ backend (`contractVersion` `1.0`, voir `docs/frontend-contract.md` du dépôt `s
   borne de lui-même (`EnvelopeWarnings`) : 400 caractères par texte sur une ligne, doublons retirés, 20 textes au plus (le
   20e résume « … et N autre(s) avertissement(s), voir run.log. »). `run.log` reste la source complète.
 - **Identifiant Revit des éléments** : en plus de `viewerId` (UniqueId, réservé au viewer), chaque élément porte
-  `revitId` (« Identifiant Revit », l'`ElementId`, en texte) et `revitUniqueId` (« Identifiant unique Revit », l'`UniqueId`,
-  s'il existe).
+  `revitId` (« Identifiant Revit », l'`ElementId`, en texte).
 - Un échec d'écriture de `envelope.json` est signalé dans `run.log` et n'empêche jamais l'écriture de l'inventaire.

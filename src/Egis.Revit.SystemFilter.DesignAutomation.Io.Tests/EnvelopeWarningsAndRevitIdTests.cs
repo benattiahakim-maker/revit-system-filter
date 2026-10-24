@@ -193,7 +193,7 @@ public sealed class EnvelopeWarningsAndRevitIdTests
     }
 
     [Fact]
-    public void L_identifiant_unique_revit_est_ajoute_quand_il_existe_sans_toucher_au_viewerId()
+    public void Le_viewerId_et_la_maquette_ne_changent_pas_et_aucun_doublon_d_identifiant_unique()
     {
         var env = Build(null);
         var e2001 = Elements(env).First(e => e.Id == "element-2001");
@@ -203,12 +203,13 @@ public sealed class EnvelopeWarningsAndRevitIdTests
         Assert.Equal("Identifiant du viewer", e2001.Properties.First(p => p.Key == "viewerId").Label);
         Assert.Equal("main", Text(e2001, "modelKey"));
         Assert.Equal("Maquette", e2001.Properties.First(p => p.Key == "modelKey").Label);
-        Assert.Equal("eu-2001", Text(e2001, "revitUniqueId"));
-        Assert.Equal("Identifiant unique Revit", e2001.Properties.First(p => p.Key == "revitUniqueId").Label);
+        // L'UniqueId n'est porté que par viewerId : pas de propriété dupliquée.
+        Assert.DoesNotContain(e2001.Properties, p => p.Key == "revitUniqueId");
+        Assert.Single(e2001.Properties, p => p.Value is string v && v == "eu-2001");
 
-        // UniqueId vide : ni viewerId ni revitUniqueId, mais revitId reste présent.
+        // UniqueId vide : pas de viewerId, mais revitId reste présent.
         Assert.Null(Text(e2003, "viewerId"));
-        Assert.Null(Text(e2003, "revitUniqueId"));
+        Assert.DoesNotContain(e2003.Properties, p => p.Key == "revitUniqueId");
         Assert.Equal("2003", Text(e2003, "revitId"));
     }
 
