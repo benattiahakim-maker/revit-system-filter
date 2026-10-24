@@ -19,14 +19,21 @@ namespace Egis.Revit.SystemFilter.Core.Services
 
         private enum Relation { Crossed, Served, Start }
 
-        public static ResultEnvelope Build(SystemInventory inventory, RoomAnalysis analysis)
+        /// <param name="pluginWarnings">
+        /// Avertissements émis par le plugin (ceux de run.log, déjà nettoyés) : ils sont copiés dans <c>warnings[]</c>
+        /// (dédupliqués et bornés par <see cref="EnvelopeWarnings"/>) et rendent l'enveloppe <c>partial</c>.
+        /// </param>
+        public static ResultEnvelope Build(SystemInventory inventory, RoomAnalysis analysis, IEnumerable<string>? pluginWarnings = null)
         {
             if (inventory is null) throw new ArgumentNullException(nameof(inventory));
             if (analysis is null) throw new ArgumentNullException(nameof(analysis));
             var envelope = new ResultEnvelope();
             var models = inventory.Models ?? new List<ModelRecord>();
+            var warnings = new List<string>();
             if (inventory.Rooms is null)
-                envelope.Warnings.Add("Pièces non disponibles : l'inventaire n'en contient pas (format 1.0).");
+                warnings.Add("Pièces non disponibles : l'inventaire n'en contient pas (format 1.0).");
+            if (pluginWarnings != null) warnings.AddRange(pluginWarnings);
+            envelope.Warnings.AddRange(EnvelopeWarnings.Normalize(warnings));
             if (models.Count == 0)
                 envelope.Models.Add(new EnvelopeModel { Key = ModelKeys.Host, Title = inventory.Model.Title ?? ModelKeys.Host });
             else
@@ -66,6 +73,9 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 var props = new List<EnvelopeProperty>();
                 props.AddRange(Text(ViewerIdKey, "Identifiant du viewer", e.UniqueId));
                 props.AddRange(Text("modelKey", "Maquette", hostKey));
+                // Repère lisible : ElementId (celui que voit l'utilisateur dans Revit) et UniqueId (le même texte que viewerId, affichable).
+                props.Add(new EnvelopeProperty { Key = "revitId", Label = "Identifiant Revit", Value = e.Id.ToString(CultureInfo.InvariantCulture) });
+                props.AddRange(Text("revitUniqueId", "Identifiant unique Revit", e.UniqueId));
                 // Mêmes membres scalaires que le JSON de l'inventaire (clés identiques) ; libellés lisibles, les mêmes que sur les pièces et systèmes.
                 props.AddRange(Text("category", "Catégorie", e.Category));
                 props.AddRange(Text("domain", "Domaine", e.Domain.ToString()));

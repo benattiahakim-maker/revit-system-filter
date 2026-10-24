@@ -39,11 +39,12 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
         public static byte[] Serialize(SystemInventory inventory) => JsonSerializer.SerializeToUtf8Bytes(inventory, JsonOptions);
 
         /// <summary>Résultat natif (objets, propriétés, références), calculé hors Revit à partir de l'inventaire.</summary>
-        public static byte[] SerializeEnvelope(SystemInventory inventory, Action<string>? info = null)
+        /// <param name="warnings">Avertissements du plugin (run.log), recopiés dans <c>warnings[]</c> de l'enveloppe.</param>
+        public static byte[] SerializeEnvelope(SystemInventory inventory, Action<string>? info = null, System.Collections.Generic.IEnumerable<string>? warnings = null)
         {
             var analysis = RoomAnalyzer.Analyze(inventory);
             info?.Invoke($"pièces : {analysis.RoomsWithGeometry} avec géométrie, {analysis.ElementsInRooms}/{analysis.AnalyzedElements} élément(s) dans une pièce (tolérance {analysis.ToleranceMm} mm)");
-            return JsonSerializer.SerializeToUtf8Bytes(ResultEnvelopeBuilder.Build(inventory, analysis), JsonOptions);
+            return JsonSerializer.SerializeToUtf8Bytes(ResultEnvelopeBuilder.Build(inventory, analysis, warnings), JsonOptions);
         }
     }
 }
