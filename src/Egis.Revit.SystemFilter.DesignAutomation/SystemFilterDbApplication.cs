@@ -55,9 +55,11 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
                 ReloadUnloadedLinks(document, ws);
                 ReportUnloadedLinks(document, ws.Log);
 
-                var json = new SystemInventoryExport().Serialize(document, ws.Settings.ToInventoryOptions(), ws.Log.Warn, ws.Log.Info);
-                ws.WriteInventory(json);
+                var export = new SystemInventoryExport();
+                var inventory = export.Build(document, ws.Settings.ToInventoryOptions(), ws.Log.Warn, ws.Log.Info);
+                ws.WriteInventory(SystemInventoryExport.Serialize(inventory));
                 ws.Log.Info($"{ws.Settings.OutputFileName} écrit");
+                WriteEnvelope(inventory, ws);
                 ws.Log.Info($"terminé : {ws.Log.Warnings} avertissement(s)");
                 return true;
             }
@@ -76,6 +78,23 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
             {
                 try { document?.Close(false); } catch (Exception) { /* fermeture best effort */ }
                 ws.WriteRunLog();
+            }
+        }
+
+        /// <summary>
+        /// Résultat natif (envelope.json) : un échec ici ne doit jamais perdre l'inventaire déjà écrit, il est seulement signalé.
+        /// </summary>
+        private static void WriteEnvelope(Egis.Revit.SystemFilter.Core.Models.Inventory.SystemInventory inventory, JobWorkspace ws)
+        {
+            try
+            {
+                ws.WriteResultFile(Egis.Revit.SystemFilter.Core.Models.Envelope.ResultEnvelope.FileName,
+                    SystemInventoryExport.SerializeEnvelope(inventory, ws.Log.Info));
+                ws.Log.Info($"{Egis.Revit.SystemFilter.Core.Models.Envelope.ResultEnvelope.FileName} écrit");
+            }
+            catch (Exception ex)
+            {
+                ws.Log.Warn($"{Egis.Revit.SystemFilter.Core.Models.Envelope.ResultEnvelope.FileName} non écrit : {ex.GetType().Name} : {ex.Message}");
             }
         }
 

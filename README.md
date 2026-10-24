@@ -74,7 +74,7 @@ ouvre lui-même le modèle principal après avoir redirigé ses liens vers le do
 |----------|-------|-------|-------------|---------|
 | `inputZip` | get | `true` | `input` | ZIP : `.rvt` principal + liens, arborescence relative |
 | `settings` | get | `false` | `settings.json` | facultatif, voir ci-dessous |
-| `result` | put | `true` | `result` | `output.zip` : `systems-inventory.json` (format 1.1 : le 1.0 reste inclus, ajouts seulement, voir `docs/design-automation.md` § Pièces) + `run.log` |
+| `result` | put | `true` | `result` | `output.zip` : `systems-inventory.json` (format 1.1 : le 1.0 reste inclus, ajouts seulement, voir `docs/design-automation.md` § Pièces) + `envelope.json` (résultat natif, voir `docs/design-automation.md` § Résultat natif) + `run.log` |
 
 `systems-inventory.json` : `elements[].parentIds` contient **tous** les systèmes de l'élément
 (sans doublon, dans l'ordre de première rencontre), pas seulement le premier.

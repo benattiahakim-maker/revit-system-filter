@@ -34,6 +34,9 @@
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\NetworkElementRecord.cs" Link="Core\NetworkElementRecord.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\NetworkDomain.cs" Link="Core\NetworkDomain.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\SystemRecord.cs" Link="Core\SystemRecord.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\RoomAnalyzer.cs" Link="Core\RoomAnalyzer.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\ResultEnvelopeBuilder.cs" Link="Core\ResultEnvelopeBuilder.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Envelope\ResultEnvelope.cs" Link="Core\ResultEnvelope.cs" />
     <None Include="..\Packaging\definitions\**\activity.json" LinkBase="Data\definitions" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

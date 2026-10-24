@@ -137,3 +137,24 @@ Le plugin **extrait**, le backend (system-filter-backend, `src/room-analysis.ts`
 - Si l'extraction des pièces échoue, le plugin retombe sur le format 1.0 (sans `models`/`rooms`) avec un `WARN` dans `run.log` ; le backend répond alors `roomAnalysis.status: "unavailable"`.
 
 Limites : les systèmes et leurs éléments ne sont lus que dans le document principal (les éléments de systèmes situés dans des liens ne sont pas inventoriés ; seules leurs pièces le sont) ; liens de premier niveau seulement ; toutes les phases (pas de filtre de phase dans les réglages « systems ») ; `Room` seulement (pas les espaces MEP). Le nouveau code Revit (`RoomExtractor`) compile mais n'a pas été exécuté dans Revit : il faut un test APS réel.
+
+## Résultat natif : `envelope.json`
+
+Le plugin calcule lui-même les pièces et écrit, à côté de `systems-inventory.json` (inchangé, format 1.1), un second
+fichier `envelope.json` : les objets, propriétés et références prêts à afficher, au format de l'enveloppe commune du
+backend (`contractVersion` `1.0`, voir `docs/frontend-contract.md` du dépôt `system-filter-backend`). Il ne contient ni
+`serviceId` ni `urn` : le backend les ajoute (service, conversion de chaque maquette pour le viewer).
+
+- **Calcul (`RoomAnalyzer`, hors Revit, testé sous Linux)** : une pièce est en conflit avec un élément si leurs boîtes
+  (mm, repère de l'hôte, hôte et liens chargés) se recouvrent de **plus de 1 mm** sur X, Y et Z. Traversée = conflit avec
+  un élément du système ; desservie = conflit avec un terminal (`DuctTerminal`, `Sprinklers`, `PlumbingFixtures`, avec ou
+  sans `OST_`) ; départ = conflit avec l'équipement de départ (`baseEquipmentId`). Éléments en diagonale : faux positifs
+  possibles (boîtes alignées sur les axes).
+- **Structure (`ResultEnvelopeBuilder`)** : `system-N` à la racine, ses éléments (`element-N`, partagés entre systèmes
+  s'ils sont identiques) puis ses pièces (`room-N`) en enfants ; pièces sans système en racines, sans `type`. Une pièce porte
+  `type` (`départ`, sinon `desservie`, sinon `traversée`) et, par système, les références `system`, `servedBy` et `startOf`.
+  Chaque élément référence ses pièces (`room`). Systèmes et éléments portent `modelKey` (maquette hôte), les pièces celui de
+  leur maquette (`models[].key`).
+- **Même résultat que le backend** : sur le job réel 5758d039 (67 pièces, 148 systèmes, 2627 éléments), `envelope.json` est
+  identique, objet par objet, à ce que le traducteur provisoire du backend produisait, en 42 ms.
+- Un échec d'écriture de `envelope.json` est signalé dans `run.log` et n'empêche jamais l'écriture de l'inventaire.
