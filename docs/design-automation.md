@@ -157,4 +157,12 @@ backend (`contractVersion` `1.0`, voir `docs/frontend-contract.md` du dépôt `s
   leur maquette (`models[].key`).
 - **Même résultat que le backend** : sur le job réel 5758d039 (67 pièces, 148 systèmes, 2627 éléments), `envelope.json` est
   identique, objet par objet, à ce que le traducteur provisoire du backend produisait, en 42 ms.
+- **Avertissements (`warnings[]`)** : les avertissements écrits dans `run.log` (lignes `WARN`, déjà nettoyées : chemins et
+  secrets masqués) sont aussi recopiés dans `warnings[]` de l'enveloppe, qui passe alors à `partial` (contrat du backend :
+  `partial` = au moins un texte dans `warnings`). Le validateur du backend n'impose que « tableau de textes » ; le plugin
+  borne de lui-même (`EnvelopeWarnings`) : 400 caractères par texte sur une ligne, doublons retirés, 20 textes au plus (le
+  20e résume « … et N autre(s) avertissement(s), voir run.log. »). `run.log` reste la source complète.
+- **Identifiant Revit des éléments** : en plus de `viewerId` (UniqueId, réservé au viewer), chaque élément porte
+  `revitId` (« Identifiant Revit », l'`ElementId`, en texte) et `revitUniqueId` (« Identifiant unique Revit », l'`UniqueId`,
+  s'il existe).
 - Un échec d'écriture de `envelope.json` est signalé dans `run.log` et n'empêche jamais l'écriture de l'inventaire.
