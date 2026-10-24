@@ -258,6 +258,41 @@ public sealed class ResultEnvelopeTests
     }
 
     [Fact]
+    public void Proprietes_des_elements_ont_un_libelle_lisible_et_la_longueur_en_mm()
+    {
+        var inv = Sample();
+        var full = El(24, "DuctCurves", Box(0, 0, 0, 10, 10, 10), 10);
+        full.Family = "Gaine rectangulaire"; full.Type = "Standard"; full.Level = "N1"; full.Size = "300x200";
+        full.LengthMm = 1500; full.Materiel = "Acier"; full.NumCta = "CTA-1";
+        inv.Elements.Add(full);
+        var env = ResultEnvelopeBuilder.Build(inv, RoomAnalyzer.Analyze(inv));
+        var system = env.Objects.First(o => o.Id == "system-10");
+        var element = Find(system.Children, "element-24");
+        EnvelopeProperty P(EnvelopeObject o, string key) => o.Properties.First(p => p.Key == key);
+
+        // Aucun libellé n'est la clé brute : tableau d'éléments seuls lisible.
+        foreach (var p in element.Properties.Where(p => p.Key != "room"))
+            Assert.NotEqual(p.Key, p.Label);
+        Assert.Equal("Catégorie", P(element, "category").Label);
+        Assert.Equal("Domaine", P(element, "domain").Label);
+        Assert.Equal("Famille", P(element, "family").Label);
+        Assert.Equal("Type", P(element, "type").Label);
+        Assert.Equal("Niveau", P(element, "level").Label);
+        Assert.Equal("Taille", P(element, "size").Label);
+        Assert.Equal("Matériel", P(element, "materiel").Label);
+        Assert.Equal("N° de CTA", P(element, "numCta").Label);
+        Assert.Equal("Longueur", P(element, "lengthMm").Label);
+        Assert.Equal("mm", P(element, "lengthMm").Unit);
+        Assert.Equal(1500d, P(element, "lengthMm").Value);
+
+        // Même texte que sur les pièces et les systèmes pour une même clé.
+        var room = Find(system.Children, "room-1");
+        Assert.Equal(P(room, "level").Label, P(element, "level").Label);
+        Assert.Equal(P(system, "domain").Label, P(element, "domain").Label);
+        Assert.Equal("Identifiant du type de système", P(system, "systemTypeId").Label);
+    }
+
+    [Fact]
     public void Inventaire_sans_pieces_donne_partial_et_un_avertissement()
     {
         var inv = Sample();

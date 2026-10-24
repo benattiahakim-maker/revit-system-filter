@@ -66,16 +66,16 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 var props = new List<EnvelopeProperty>();
                 props.AddRange(Text(ViewerIdKey, "Identifiant du viewer", e.UniqueId));
                 props.AddRange(Text("modelKey", "Maquette", hostKey));
-                // Mêmes membres scalaires que le JSON de l'inventaire (clé = libellé).
-                props.AddRange(Text("category", "category", e.Category));
-                props.AddRange(Text("domain", "domain", e.Domain.ToString()));
-                props.AddRange(Text("family", "family", e.Family));
-                props.AddRange(Text("type", "type", e.Type));
-                props.AddRange(Text("level", "level", e.Level));
-                props.AddRange(Text("size", "size", e.Size));
-                props.AddRange(Num("lengthMm", "lengthMm", e.LengthMm, null));
-                props.AddRange(Text("materiel", "materiel", e.Materiel));
-                props.AddRange(Text("numCta", "numCta", e.NumCta));
+                // Mêmes membres scalaires que le JSON de l'inventaire (clés identiques) ; libellés lisibles, les mêmes que sur les pièces et systèmes.
+                props.AddRange(Text("category", "Catégorie", e.Category));
+                props.AddRange(Text("domain", "Domaine", e.Domain.ToString()));
+                props.AddRange(Text("family", "Famille", e.Family));
+                props.AddRange(Text("type", "Type", e.Type));
+                props.AddRange(Text("level", "Niveau", e.Level));
+                props.AddRange(Text("size", "Taille", e.Size));
+                props.AddRange(Num("lengthMm", "Longueur", e.LengthMm, "mm"));
+                props.AddRange(Text("materiel", "Matériel", e.Materiel));
+                props.AddRange(Text("numCta", "N° de CTA", e.NumCta));
                 if (analysis.ElementRoomIds.TryGetValue(e.Id, out var roomIds))
                     props.AddRange(Refs("room", "Pièce", roomIds.Where(rooms.ContainsKey), "room"));
                 return new EnvelopeObject { Id = "element-" + e.Id, Name = name, Properties = props };
@@ -147,7 +147,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 }
                 if (s.BaseEquipmentId is long baseId && (own ?? new List<EnvelopeObject>()).Any(o => o.Id == "element-" + baseId))
                     props.Add(new EnvelopeProperty { Key = "baseEquipment", Label = "Équipement de départ", Type = EnvelopeProperty.Ref, Value = "element-" + baseId });
-                props.AddRange(Num("systemTypeId", "systemTypeId", s.SystemTypeId, null));
+                props.AddRange(Num("systemTypeId", "Identifiant du type de système", s.SystemTypeId, null));
                 envelope.Objects.Add(new EnvelopeObject
                 {
                     Id = "system-" + s.Id,
