@@ -71,6 +71,19 @@ namespace Egis.Revit.SystemFilter.DesignAutomation.Io
             return path;
         }
 
+        /// <summary>Écrit un fichier annexe (nom simple, sans dossier) dans result/.</summary>
+        public string WriteResultFile(string fileName, byte[] content)
+        {
+            if (string.IsNullOrEmpty(fileName) || fileName != Path.GetFileName(fileName))
+            {
+                throw new ArgumentException("Nom de fichier simple requis.", nameof(fileName));
+            }
+            Directory.CreateDirectory(ResultDirectory);
+            var path = Path.Combine(ResultDirectory, fileName);
+            File.WriteAllBytes(path, content);
+            return path;
+        }
+
         /// <summary>Écrit run.log dans result/ (toujours, y compris en cas d'échec).</summary>
         public void WriteRunLog()
         {
