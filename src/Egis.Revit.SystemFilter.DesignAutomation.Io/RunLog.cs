@@ -20,12 +20,15 @@ namespace Egis.Revit.SystemFilter.DesignAutomation.Io
         private static readonly Regex Secret = new Regex(@"(?i)(bearer\s+[\w\-.~+/]+=*|(token|secret|password|signature|sig|x-amz-[\w-]+)\s*[=:]\s*[^\s&""']+|https?://\S+)", RegexOptions.Compiled);
 
         private readonly List<string> _lines = new List<string>();
+        private readonly List<string> _warnings = new List<string>();
         public IReadOnlyList<string> Lines => _lines;
+        /// <summary>Avertissements nettoyés (sans niveau), dans l'ordre, même au-delà de <see cref="MaxLines"/> : repris dans <c>warnings[]</c> de l'enveloppe.</summary>
+        public IReadOnlyList<string> WarningMessages => _warnings;
         public int Warnings { get; private set; }
         public int Errors { get; private set; }
 
         public void Info(string message) => Add("INFO", message);
-        public void Warn(string message) { Warnings++; Add("WARN", message); }
+        public void Warn(string message) { Warnings++; _warnings.Add(Sanitize(message)); Add("WARN", message); }
         public void Error(string message) { Errors++; Add("ERROR", message); }
 
         private void Add(string level, string message)

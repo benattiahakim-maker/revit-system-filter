@@ -89,7 +89,7 @@ namespace Egis.Revit.SystemFilter.DesignAutomation
             try
             {
                 ws.WriteResultFile(Egis.Revit.SystemFilter.Core.Models.Envelope.ResultEnvelope.FileName,
-                    SystemInventoryExport.SerializeEnvelope(inventory, ws.Log.Info));
+                    SystemInventoryExport.SerializeEnvelope(inventory, ws.Log.Info, ws.Log.WarningMessages));
                 ws.Log.Info($"{Egis.Revit.SystemFilter.Core.Models.Envelope.ResultEnvelope.FileName} écrit");
             }
             catch (Exception ex)
