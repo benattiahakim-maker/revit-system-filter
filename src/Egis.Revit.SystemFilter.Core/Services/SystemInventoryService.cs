@@ -109,11 +109,18 @@ namespace Egis.Revit.SystemFilter.Core.Services
                     bySystem.TryGetValue(system.Id, out var names) ? names : new List<string?>(), _levels);
             }
 
-            Infos = new List<string>
+            var infos = new List<string>
             {
                 RoomChoice.Summary(equipments),
                 LevelChoice.Summary(inventory.Elements.Count, _missingLevelBefore, inventory.Elements.Count(e => e.Level == null)),
             };
+            if (_options.IncludeRooms)
+            {
+                AddRooms(document, inventory, warnings);
+                if (inventory.Rooms != null)
+                    infos.Add($"pièces extraites (format 1.1) : {inventory.Rooms.Count} pièce(s), {inventory.Models?.Count ?? 0} maquette(s), éléments avec boîte : {inventory.Elements.Count(e => e.BBox != null)}/{inventory.Elements.Count}");
+            }
+            Infos = infos;
             Warnings = warnings;
 
             inventory.Summary = new InventorySummary
@@ -124,6 +131,27 @@ namespace Egis.Revit.SystemFilter.Core.Services
             };
 
             return inventory;
+        }
+
+        /// <summary>
+        /// Format 1.1 : maquettes, pièces placées (hôte et liens chargés) avec leurs boîtes. En cas d'échec, on retombe sur le
+        /// format 1.0 (sans models/rooms ni bbox) avec un avertissement : le backend répond alors roomAnalysis « unavailable ».
+        /// </summary>
+        private static void AddRooms(Document document, SystemInventory inventory, List<string> warnings)
+        {
+            try
+            {
+                var extraction = RoomExtractor.Extract(document);
+                inventory.SchemaVersion = "1.1";
+                inventory.Models = extraction.Models;
+                inventory.Rooms = extraction.Rooms;
+                warnings.AddRange(extraction.Warnings);
+            }
+            catch (Exception ex) when (ex is Autodesk.Revit.Exceptions.ApplicationException || ex is InvalidOperationException)
+            {
+                warnings.Add($"pièces non extraites (format 1.0 conservé) : {ex.GetType().Name}");
+                foreach (var element in inventory.Elements) element.BBox = null;
+            }
         }
 
         private void CollectDuctSystems(
@@ -324,6 +352,7 @@ namespace Egis.Revit.SystemFilter.Core.Services
                 ParentIds = new List<long> { systemId },
             };
             record.Room = GetRoom(document, element);
+            record.BBox = _options.IncludeRooms ? RoomExtractor.BBoxOf(element, Transform.Identity) : null;
 
             if (builtInCategory == BuiltInCategory.OST_MechanicalEquipment)
             {

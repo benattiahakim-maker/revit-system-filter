@@ -21,6 +21,14 @@ namespace Egis.Revit.SystemFilter.Core.Models.Inventory
         [JsonPropertyName("summary")]
         public InventorySummary Summary { get; set; } = new InventorySummary();
 
+        /// <summary>Format 1.1 : maquettes lues (hôte puis liens chargés). Omis (null) en 1.0.</summary>
+        [JsonPropertyName("models")]
+        public List<ModelRecord>? Models { get; set; }
+
+        /// <summary>Format 1.1 : pièces placées de l'hôte et des liens chargés. Omis (null) en 1.0.</summary>
+        [JsonPropertyName("rooms")]
+        public List<PlacedRoomRecord>? Rooms { get; set; }
+
         [JsonPropertyName("systemTypes")]
         public List<SystemTypeRecord> SystemTypes { get; set; } = new List<SystemTypeRecord>();
 
