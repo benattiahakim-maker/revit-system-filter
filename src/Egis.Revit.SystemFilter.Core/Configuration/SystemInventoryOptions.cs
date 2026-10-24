@@ -9,6 +9,9 @@ namespace Egis.Revit.SystemFilter.Core.Configuration
         /// <summary>Inclure les systèmes de tuyauterie (CVC eau / plomberie).</summary>
         public bool IncludePipingSystems { get; init; } = true;
 
+        /// <summary>Extraire les pièces, les maquettes et les boîtes englobantes (format 1.1). Les conflits sont calculés par le backend.</summary>
+        public bool IncludeRooms { get; init; } = true;
+
         public static SystemInventoryOptions Default { get; } = new SystemInventoryOptions();
     }
 }

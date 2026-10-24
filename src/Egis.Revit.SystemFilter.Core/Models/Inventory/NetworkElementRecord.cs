@@ -36,6 +36,11 @@ namespace Egis.Revit.SystemFilter.Core.Models.Inventory
         [JsonPropertyName("room")]
         public RoomRecord? Room { get; set; }
 
+        /// <summary>Boîte englobante (mm, axes, repère de l'hôte, format 1.1) ; null (écrit) si l'élément n'a pas de géométrie.</summary>
+        [JsonPropertyName("bbox")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public BBoxRecord? BBox { get; set; }
+
         [JsonPropertyName("level")]
         public string? Level { get; set; }
 

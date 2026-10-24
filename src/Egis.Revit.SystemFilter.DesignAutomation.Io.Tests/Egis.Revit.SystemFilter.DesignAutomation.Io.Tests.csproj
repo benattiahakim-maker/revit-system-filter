@@ -24,6 +24,13 @@
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\LevelChoice.cs" Link="Core\LevelChoice.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\RoomChoice.cs" Link="Core\RoomChoice.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\RoomRecord.cs" Link="Core\RoomRecord.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\SystemInventory.cs" Link="Core\SystemInventory.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\SystemTypeRecord.cs" Link="Core\SystemTypeRecord.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\BoxMath.cs" Link="Core\BoxMath.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Services\RoomIdAllocator.cs" Link="Core\RoomIdAllocator.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\BBoxRecord.cs" Link="Core\BBoxRecord.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\ModelRecord.cs" Link="Core\ModelRecord.cs" />
+    <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\PlacedRoomRecord.cs" Link="Core\PlacedRoomRecord.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\NetworkElementRecord.cs" Link="Core\NetworkElementRecord.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\NetworkDomain.cs" Link="Core\NetworkDomain.cs" />
     <Compile Include="..\Egis.Revit.SystemFilter.Core\Models\Inventory\SystemRecord.cs" Link="Core\SystemRecord.cs" />

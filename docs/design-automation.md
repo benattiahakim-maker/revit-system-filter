@@ -124,3 +124,16 @@ Il tourne sous Windows et sous Linux (PowerShell 7).
 Avant ouverture, les liens sont redirigés vers le dossier extrait (TransmissionData). Après ouverture, chaque `RevitLinkType` encore non chargé est cherché dans le dossier de travail (chemin relatif au modèle principal, puis nom de fichier unique, récursif) et rechargé par `RevitLinkType.LoadFrom(…, new WorksetConfiguration())` dans une transaction. `run.log` : une ligne `INFO lien rechargé : X.rvt chargé depuis …` ou `INFO lien rechargé : X.rvt introuvable dans le dossier de travail` par lien.
 
 Maquette hôte : `settings.json` → `mainModelPath` (alias `hostModel`), sinon l'unique `.rvt` à la racine du ZIP.
+
+
+## Pièces et boîtes englobantes (format 1.1)
+
+Le plugin **extrait**, le backend (system-filter-backend, `src/room-analysis.ts`) **calcule** les pièces traversées, desservies et de départ : les règles changent sans republier l'AppBundle. Le plugin n'effectue aucun calcul de conflit.
+
+`schemaVersion: "1.1"`, ajouts seulement (le format 1.0 et le comportement des anciens champs ne changent pas) :
+- `models[]` : `{key, title, isHost, transform:{origin (mm), basisX, basisY, basisZ}}`. L'hôte a la clé `main` et une transformation identité ; chaque **instance** de lien chargé a la clé `link-<ElementId de l'instance>` et `RevitLinkInstance.GetTotalTransform()`.
+- `rooms[]` : pièces **placées** (`Area > 0`) de l'hôte et des liens chargés : `id` (entier unique dans le fichier, attribué par le plugin car les ElementId Revit peuvent collisionner entre maquettes liées), `revitId`, `uniqueId`, `modelKey`, `number`, `name`, `level`, `area` (m²), `volume` (m³, `null` si non calculé), `phase`, `department`, `height`, `perimeter`, `baseOffset`, `limitOffset` (mm), `upperLimit`, `occupancy`, `comments`, `baseFinish`, `ceilingFinish`, `floorFinish`, `wallFinish` (`null` si absent), `bbox`.
+- `bbox` (pièces et `elements[]`) : `{min:[x,y,z], max:[x,y,z]}` en mm, boîte alignée sur les axes dans le repère de la maquette **principale** : `Element.get_BoundingBox(null)`, ses 8 coins transformés par `BoundingBoxXYZ.Transform` puis `GetTotalTransform()` du lien, puis boîte alignée (`Core/Services/BoxMath.cs`, testé sous Linux). `null` si l'élément n'a pas de géométrie.
+- Si l'extraction des pièces échoue, le plugin retombe sur le format 1.0 (sans `models`/`rooms`) avec un `WARN` dans `run.log` ; le backend répond alors `roomAnalysis.status: "unavailable"`.
+
+Limites : les systèmes et leurs éléments ne sont lus que dans le document principal (les éléments de systèmes situés dans des liens ne sont pas inventoriés ; seules leurs pièces le sont) ; liens de premier niveau seulement ; toutes les phases (pas de filtre de phase dans les réglages « systems ») ; `Room` seulement (pas les espaces MEP). Le nouveau code Revit (`RoomExtractor`) compile mais n'a pas été exécuté dans Revit : il faut un test APS réel.
